@@ -1,0 +1,6 @@
+# STM32CubeIDE build ciktisi
+Debug/
+Release/
+
+# Eclipse workspace metadata
+.metadata/
