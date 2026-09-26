@@ -57,36 +57,7 @@ static void MX_TIM2_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-/* Yeni ölçüm hazırsa 1 döner; frekansı *freq_hz içine yazar. */
-uint8_t Measure_ETR_Frequency(uint32_t *freq_hz)
-{
-    static uint8_t  started = 0;
-    static uint32_t start_tick;
-    static uint32_t start_count;
 
-    if (!started)
-    {
-        start_count = __HAL_TIM_GET_COUNTER(&htim2);
-        start_tick  = HAL_GetTick();
-        started     = 1;
-        return 0;
-    }
-
-    uint32_t now     = HAL_GetTick();
-    uint32_t elapsed = now - start_tick;          /* taşmaya dayanıklı */
-    if (elapsed < 1000U) return 0;                /* pencere dolmadı */
-
-    uint32_t end_count = __HAL_TIM_GET_COUNTER(&htim2);
-    uint32_t delta     = end_count - start_count; /* 32-bit taşmaya dayanıklı */
-
-    /* Tam 1000 ms yerine gerçekte geçen süreye böl → ±1 ms hatasını düzeltir */
-    *freq_hz = (uint32_t)(((uint64_t)delta * 1000U) / elapsed);
-
-    /* Pencereyi boşluk bırakmadan yeniden başlat */
-    start_tick  = now;
-    start_count = end_count;
-    return 1;
-}
 /* USER CODE END 0 */
 
 /**
@@ -132,7 +103,8 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-
+    /* PA0'daki son yükselen kenardan bu yana geçen süre (ms); her kenarda 0'a döner */
+    counterValue1 = __HAL_TIM_GET_COUNTER(&htim2);
   }
   /* USER CODE END 3 */
 }
@@ -227,7 +199,10 @@ static void MX_TIM2_Init(void)
     Error_Handler();
   }
   /* USER CODE BEGIN TIM2_Init 2 */
-
+  /* TI1 (PA0) girişine en güçlü dijital filtre: IC1F=15 → fDTS/32, N=8 ≈ 16 µs.
+     Kısa gürültü darbelerini süzer; ms mertebesindeki buton bounce'u için yetmez.
+     CubeMX'te Slave Mode > Trigger Filter = 15 yapılırsa bu satıra gerek kalmaz. */
+  MODIFY_REG(htim2.Instance->CCMR1, TIM_CCMR1_IC1F, 15U << TIM_CCMR1_IC1F_Pos);
   /* USER CODE END TIM2_Init 2 */
 
 }
