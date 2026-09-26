@@ -57,36 +57,7 @@ static void MX_TIM2_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-/* Yeni ölçüm hazırsa 1 döner; frekansı *freq_hz içine yazar. */
-uint8_t Measure_ETR_Frequency(uint32_t *freq_hz)
-{
-    static uint8_t  started = 0;
-    static uint32_t start_tick;
-    static uint32_t start_count;
 
-    if (!started)
-    {
-        start_count = __HAL_TIM_GET_COUNTER(&htim2);
-        start_tick  = HAL_GetTick();
-        started     = 1;
-        return 0;
-    }
-
-    uint32_t now     = HAL_GetTick();
-    uint32_t elapsed = now - start_tick;          /* taşmaya dayanıklı */
-    if (elapsed < 1000U) return 0;                /* pencere dolmadı */
-
-    uint32_t end_count = __HAL_TIM_GET_COUNTER(&htim2);
-    uint32_t delta     = end_count - start_count; /* 32-bit taşmaya dayanıklı */
-
-    /* Tam 1000 ms yerine gerçekte geçen süreye böl → ±1 ms hatasını düzeltir */
-    *freq_hz = (uint32_t)(((uint64_t)delta * 1000U) / elapsed);
-
-    /* Pencereyi boşluk bırakmadan yeniden başlat */
-    start_tick  = now;
-    start_count = end_count;
-    return 1;
-}
 /* USER CODE END 0 */
 
 /**
@@ -132,7 +103,8 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-
+    /* PA0 HIGH iken (buton basılı) her ms 1 artar, LOW iken olduğu yerde durur */
+    counterValue1 = __HAL_TIM_GET_COUNTER(&htim2);
   }
   /* USER CODE END 3 */
 }
@@ -214,7 +186,7 @@ static void MX_TIM2_Init(void)
   }
   sSlaveConfig.SlaveMode = TIM_SLAVEMODE_GATED;
   sSlaveConfig.InputTrigger = TIM_TS_TI1FP1;
-  sSlaveConfig.TriggerPolarity = TIM_TRIGGERPOLARITY_FALLING;
+  sSlaveConfig.TriggerPolarity = TIM_TRIGGERPOLARITY_RISING;
   sSlaveConfig.TriggerFilter = 0;
   if (HAL_TIM_SlaveConfigSynchro(&htim2, &sSlaveConfig) != HAL_OK)
   {
