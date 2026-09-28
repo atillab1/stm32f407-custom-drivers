@@ -58,8 +58,6 @@ static void MX_TIM3_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-
-/* USER CODE BEGIN 0 */
 typedef struct
 {
   uint8_t r, g, b;
@@ -133,26 +131,26 @@ int main(void)
   MX_TIM4_Init();
   MX_TIM3_Init();
   /* USER CODE BEGIN 2 */
-//HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
-   HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);   /* R */
-   HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_2);   /* G */
-   HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_3);   /* B */
-  /*USER CODE END 2 */
+  HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);   /* R: PA6 */
+  HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_2);   /* G: PA7 */
+  HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_3);   /* B: PB0 */
+  /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
     /* USER CODE END WHILE */
-	  for (uint32_t k = 0; k < COLOR_COUNT; k++)
-	      {
-	        RGB_t from = colors[k];
-	        RGB_t to   = colors[(k + 1) % COLOR_COUNT];   /* sondan sonra başa döner */
 
-	        Fade_To_Color(from, to, 100, 10);   /* 100 adım × 10 ms ≈ 1 s geçiş */
-	        HAL_Delay(500);                     /* her renkte yarım saniye bekle */
-	      }
     /* USER CODE BEGIN 3 */
+    for (uint32_t k = 0; k < COLOR_COUNT; k++)
+    {
+      RGB_t from = colors[k];
+      RGB_t to   = colors[(k + 1) % COLOR_COUNT];   /* sondan sonra başa döner */
+
+      Fade_To_Color(from, to, 100, 10);   /* 100 adım × 10 ms ≈ 1 s geçiş */
+      HAL_Delay(500);                     /* her renkte yarım saniye bekle */
+    }
   }
   /* USER CODE END 3 */
 }
