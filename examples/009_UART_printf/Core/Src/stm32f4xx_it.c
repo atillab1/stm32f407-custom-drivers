@@ -212,7 +212,11 @@ void USART3_IRQHandler(void)
 		uint8_t ch = (uint8_t)(huart3.Instance->DR);// veri geliyorsa da gidiyorsa da data registerina yazilir
 		Circular_Buffer_Enqueue(uart3.cbIn, ch);
 	}
-	if(__HAL_UART_GET_FLAG(uart3.huart,UART_FLAG_TXE))
+	// TXE bayragi DR bos oldugu surece hep 1'dir; bu yuzden TX kesmesinin gercekten
+	// acik olup olmadigina da bak. Yoksa RXNE yuzunden girilen ISR, TX kesmesi kapaliyken
+	// UARTx_Write()'in ayni buffer'dan okudugu anda araya girip tail'i bozabilir.
+	if(__HAL_UART_GET_FLAG(uart3.huart,UART_FLAG_TXE) &&
+	   __HAL_UART_GET_IT_SOURCE(uart3.huart,UART_IT_TXE))
 	{
 		if(!Circular_Buffer_Is_Empty(uart3.cbOut))
 		{
