@@ -4,3 +4,14 @@ Release/
 
 # Eclipse workspace metadata
 .metadata/
+
+# Eclipse remote systems cache
+RemoteSystemsTempFiles/
+
+# Editor / OS artifacts
+*.bak
+*.orig
+*~
+.DS_Store
+Thumbs.db
+desktop.ini
