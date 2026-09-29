@@ -139,11 +139,13 @@ int main(void)
     /* USER CODE BEGIN 3 */
     counterValue1 = __HAL_TIM_GET_COUNTER(&htim2);
     counterValue2 = htim2.Instance->CNT;
-    frequencyHz = Measure_ETR_Frequency_With_Tick();
-    frequencyMHZ =(float)frequencyHz/1000000.0;
+    if (Measure_ETR_Frequency(&frequencyHz))   /* 1 s pencere dolunca yeni ölçüm hazır */
+    {
+      frequencyMHZ = (float)frequencyHz / 1000000.0;
 
-    realfrequencyHz= frequencyHz * 2;
-    realfrequencyMHZ= frequencyMHZ * 2;
+      realfrequencyHz  = frequencyHz * 2;        /* MCO1 = HSI / 2 olduğu için */
+      realfrequencyMHZ = frequencyMHZ * 2;
+    }
   }
   /* USER CODE END 3 */
 }
