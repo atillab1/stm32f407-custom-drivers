@@ -12,7 +12,7 @@
 //Buffer Initiliaze
 void Circular_Buffer_Init(Circular_Buffer_t *circularBuffer)
 {
-	memset(circularBuffer->buffer,0, CIRCULAR_BUFFER_SIZE);
+	// buffer[]'i sifirlamaya gerek yok: head'e yazilmadan hicbir kutu okunmaz
 	circularBuffer->head = 0; // basini sifirla initiliazedasin
 	circularBuffer->tail = 0; // ayni sekilde sonunu da sifirla initiliazdasin
 
@@ -20,13 +20,13 @@ void Circular_Buffer_Init(Circular_Buffer_t *circularBuffer)
 
 //Buffer Durum Kontrolu bos mu dolu mu
 
-bool Circular_Buffer_Is_Empty(Circular_Buffer_t *circularBuffer)
+bool Circular_Buffer_Is_Empty(const Circular_Buffer_t *circularBuffer)
 {
-	return (circularBuffer->head == circularBuffer->tail)? true : false;
+	return circularBuffer->head == circularBuffer->tail;
 }
 
 
-bool Circular_Buffer_Is_Full(Circular_Buffer_t *circularBuffer)
+bool Circular_Buffer_Is_Full(const Circular_Buffer_t *circularBuffer)
 {
  int div = circularBuffer->head - circularBuffer->tail;
 
@@ -61,10 +61,14 @@ if(Circular_Buffer_Is_Empty(circularBuffer))
  return true;
 }
 
-uint16_t Circular_Buffer_Count(Circular_Buffer_t *circularBuffer)
+uint16_t Circular_Buffer_Count(const Circular_Buffer_t *circularBuffer)
 {
-	if(circularBuffer->head >= circularBuffer->tail)
-		return circularBuffer->head - circularBuffer->tail;
+	// head/tail'i bir kez oku: hesap sirasinda ISR degistirse bile tutarli iki deger kullanilir
+	uint16_t head = circularBuffer->head;
+	uint16_t tail = circularBuffer->tail;
+
+	if(head >= tail)
+		return head - tail;
 	else
-		return (CIRCULAR_BUFFER_SIZE - circularBuffer->tail + circularBuffer->head) ;
+		return (CIRCULAR_BUFFER_SIZE - tail + head) ;
 }

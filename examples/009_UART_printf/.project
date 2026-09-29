@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <projectDescription>
-	<name>STM_Project_001</name>
+	<name>009_UART_printf</name>
 	<comment></comment>
 	<projects>
 	</projects>
@@ -29,4 +29,21 @@
 		<nature>org.eclipse.cdt.managedbuilder.core.managedBuildNature</nature>
 		<nature>org.eclipse.cdt.managedbuilder.core.ScannerConfigNature</nature>
 	</natures>
+	<linkedResources>
+		<link>
+			<name>UserDrivers</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
+			<name>UserDrivers/circular_buffer</name>
+			<type>2</type>
+			<locationURI>PARENT-2-PROJECT_LOC/drivers/circular_buffer</locationURI>
+		</link>
+		<link>
+			<name>UserDrivers/uart</name>
+			<type>2</type>
+			<locationURI>PARENT-2-PROJECT_LOC/drivers/uart</locationURI>
+		</link>
+	</linkedResources>
 </projectDescription>

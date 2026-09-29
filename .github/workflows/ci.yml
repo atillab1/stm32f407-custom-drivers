@@ -1,0 +1,59 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  unit-tests:
+    name: Host unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build and run tests
+        run: make -C tests
+
+  static-analysis:
+    name: Static analysis (cppcheck)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install cppcheck
+        run: sudo apt-get update && sudo apt-get install -y cppcheck
+      - name: Analyse drivers/
+        run: >
+          cppcheck --enable=warning,performance,portability --std=c11
+          --error-exitcode=1 --inline-suppr -q
+          --suppress=missingIncludeSystem --suppress='*:app/Drivers/*'
+          -DSTM32F407xx -DUSE_HAL_DRIVER
+          -Idrivers/io -Idrivers/adc -Idrivers/circular_buffer -Idrivers/uart
+          -Iapp/Core/Inc -Iapp/Drivers/STM32F4xx_HAL_Driver/Inc
+          -Iapp/Drivers/CMSIS/Device/ST/STM32F4xx/Include -Iapp/Drivers/CMSIS/Include
+          drivers/
+
+  firmware:
+    name: Build ${{ matrix.project }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        project:
+          - app
+          - examples/001_TIMER
+          - examples/002_TIMER_External_Trigger_Mode2
+          - examples/003_TIMER_Internal_Trigger_Mode3
+          - examples/004_TIMER_Slave_Mode_Reset_Mode
+          - examples/005_TIMER_Slave_Gated_Mode2
+          - examples/006_TIMER_Input_Capture
+          - examples/007_TIMER_Output_Compare
+          - examples/008_PWM
+          - examples/009_UART_printf
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Arm GNU toolchain
+        run: sudo apt-get update && sudo apt-get install -y gcc-arm-none-eabi libnewlib-arm-none-eabi
+      - name: Build Debug
+        run: python3 tools/build_cubeide_project.py "${{ matrix.project }}" --config Debug --out build/Debug
+      - name: Build Release
+        run: python3 tools/build_cubeide_project.py "${{ matrix.project }}" --config Release --out build/Release

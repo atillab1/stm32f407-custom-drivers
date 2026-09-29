@@ -19,7 +19,8 @@ void UARTx_Initilalization(UART_Ex_t *uart,UART_HandleTypeDef *huart,Circular_Bu
 	Circular_Buffer_Init(cbOut);
 
 	__HAL_UART_ENABLE_IT(uart->huart ,UART_IT_RXNE); //RX Interrupt enabled ...
-	__HAL_UART_ENABLE_IT(uart->huart ,UART_IT_TXE); //TX Interrupt enabled ...
+	// TX kesmesi burada acilmaz: gonderilecek veri yokken TXE hep 1 oldugundan ISR
+	// bosuna calisir. UARTx_Write() veri gelince acar, ISR buffer bosalinca kapatir.
 
 }
 
@@ -29,10 +30,10 @@ void UARTx_Write(UART_Ex_t *uart , char ch)
 	if(Circular_Buffer_Enqueue(uart->cbOut, ch)){
 		if(!(uart->huart->Instance->CR1 & USART_CR1_TXEIE)) // bit bit karsilastirma icin "&"
 		{
-			uint8_t ch;
-			if(Circular_Buffer_Dequeue(uart->cbOut, &ch))
+			uint8_t next;
+			if(Circular_Buffer_Dequeue(uart->cbOut, &next))
 			{
-				uart->huart->Instance->DR = ch;
+				uart->huart->Instance->DR = next;
 				__HAL_UART_ENABLE_IT(uart->huart,UART_IT_TXE);
 			}
 		}
