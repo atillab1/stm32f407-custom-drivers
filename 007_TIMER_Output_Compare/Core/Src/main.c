@@ -65,7 +65,7 @@ static void MX_TIM4_Init(void);
 /* USER CODE BEGIN 0 */
 void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
 {
-	if(htim->Instance == TIM2 && htim->Channel == TIM_CHANNEL_1 );// birden fazla IC kullanim durumu olursa bu
+	if(htim->Instance == TIM2 && htim->Channel == HAL_TIM_ACTIVE_CHANNEL_1) // birden fazla IC kullanim durumu olursa bu
 	{															  // bu yapiyi kullanmak en mantiklisi olacaktir
 		uint32_t capturedValue = HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_1);
 
