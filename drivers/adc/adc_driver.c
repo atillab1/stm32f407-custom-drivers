@@ -8,7 +8,9 @@
 
 #include "adc_driver.h"
 
-DMA_Transfer_Status_t globalDmaTransferStatus = DMA_Transfer_Not_Yet_Start;
+// DMA kesmesindeki callback'ler yazar, main dongusu okur: volatile olmazsa derleyici
+// degeri bir kez okuyup cache'leyebilir ve ADC_DMA_Conversion() yeni veriyi hic gormez.
+volatile DMA_Transfer_Status_t globalDmaTransferStatus = DMA_Transfer_Not_Yet_Start;
 
 void ADC_Initialization(ADC_Info_t *adcInfo, ADC_HandleTypeDef *hadc)
 {
@@ -68,7 +70,8 @@ void ADC_DMA_Conversion(ADC_Info_t *adcInfo)
 																					 DIGITAL_SCALE)/1000.0f;
         	        }
 
-        	        adcInfo->vBAT = adcInfo->adcVoltageData[4];
+        	        // STM32F40x/41x'te VBAT kanali icerde 2'ye bolunmus olarak olculur (RM0090, VBAT/2)
+        	        adcInfo->vBAT = adcInfo->adcVoltageData[ADC_Channel_Vbat] * 2.0f;
 
         	        adcInfo->potPercentage = MAP_Voltage_To_Percantage(adcInfo->adcVoltageData[ADC_Channel_2],
         	                                                            0.0f,
