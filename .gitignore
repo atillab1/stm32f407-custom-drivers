@@ -2,6 +2,11 @@
 Debug/
 Release/
 
+# Command-line and host test build output
+build/
+build-cli/
+__pycache__/
+
 # Eclipse workspace metadata
 .metadata/
 
