@@ -29,4 +29,21 @@
 		<nature>org.eclipse.cdt.managedbuilder.core.managedBuildNature</nature>
 		<nature>org.eclipse.cdt.managedbuilder.core.ScannerConfigNature</nature>
 	</natures>
+	<linkedResources>
+		<link>
+			<name>UserDrivers</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
+			<name>UserDrivers/adc</name>
+			<type>2</type>
+			<locationURI>PARENT-1-PROJECT_LOC/drivers/adc</locationURI>
+		</link>
+		<link>
+			<name>UserDrivers/io</name>
+			<type>2</type>
+			<locationURI>PARENT-1-PROJECT_LOC/drivers/io</locationURI>
+		</link>
+	</linkedResources>
 </projectDescription>
