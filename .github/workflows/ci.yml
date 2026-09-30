@@ -25,11 +25,11 @@ jobs:
         run: >
           cppcheck --enable=warning,performance,portability --std=c11
           --error-exitcode=1 --inline-suppr -q
-          --suppress=missingIncludeSystem --suppress='*:app/Drivers/*'
+          --suppress=missingIncludeSystem --suppress='*:STM_Project_001/Drivers/*'
           -DSTM32F407xx -DUSE_HAL_DRIVER
           -Idrivers/io -Idrivers/adc -Idrivers/circular_buffer -Idrivers/uart
-          -Iapp/Core/Inc -Iapp/Drivers/STM32F4xx_HAL_Driver/Inc
-          -Iapp/Drivers/CMSIS/Device/ST/STM32F4xx/Include -Iapp/Drivers/CMSIS/Include
+          -ISTM_Project_001/Core/Inc -ISTM_Project_001/Drivers/STM32F4xx_HAL_Driver/Inc
+          -ISTM_Project_001/Drivers/CMSIS/Device/ST/STM32F4xx/Include -ISTM_Project_001/Drivers/CMSIS/Include
           drivers/
 
   firmware:
@@ -39,16 +39,16 @@ jobs:
       fail-fast: false
       matrix:
         project:
-          - app
-          - examples/001_TIMER
-          - examples/002_TIMER_External_Trigger_Mode2
-          - examples/003_TIMER_Internal_Trigger_Mode3
-          - examples/004_TIMER_Slave_Mode_Reset_Mode
-          - examples/005_TIMER_Slave_Gated_Mode2
-          - examples/006_TIMER_Input_Capture
-          - examples/007_TIMER_Output_Compare
-          - examples/008_PWM
-          - examples/009_UART_printf
+          - STM_Project_001
+          - 001_TIMER
+          - 002_TIMER_External_Trigger_Mode2
+          - 003_TIMER_Internal_Trigger_Mode3
+          - 004_TIMER_Slave_Mode_Reset_Mode
+          - 005_TIMER_Slave_Gated_Mode2
+          - 006_TIMER_Input_Capture
+          - 007_TIMER_Output_Compare
+          - 008_PWM
+          - 009_UART_printf
     steps:
       - uses: actions/checkout@v4
       - name: Install Arm GNU toolchain

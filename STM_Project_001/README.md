@@ -1,9 +1,12 @@
 # Main application (`STM_Project_001`)
 
-The main application of the repository. It uses the [`io`](../drivers/io/),
-[`adc`](../drivers/adc/), [`uart`](../drivers/uart/) and
-[`circular_buffer`](../drivers/circular_buffer/) drivers, which CubeIDE shows under the linked
-`UserDrivers` folder.
+The main application of the repository. Its hand-written drivers live inside the project, under
+`Core/MyProject_Drivers`:
+
+| Folder | Driver |
+|---|---|
+| `Core/MyProject_Drivers/IO_Drivers` | [`io`](../drivers/io/): user button and LEDs |
+| `Core/MyProject_Drivers/ADC_Drivers` | [`adc`](../drivers/adc/): ADC1 + DMA, VDDA, temperature, VBAT |
 
 ## What it does
 
@@ -11,9 +14,14 @@ The main application of the repository. It uses the [`io`](../drivers/io/),
 - Samples five ADC channels continuously with DMA, averages 64 frames and computes the channel
   voltages, the real supply voltage (VDDA), the die temperature and VBAT.
 - Lights the green LED when ADC + DMA started, the red LED when they failed.
-- Sets up USART3 with the `uart` driver: received bytes are queued in `uartCbIn`, and
-  `UARTx_Printf(&uart3, ...)` sends text through `uartCbOut`. The main loop does not use the
-  UART yet.
+
+## Work in progress: UART
+
+USART3 is configured in CubeMX and `USART3_IRQHandler()` in `Core/Src/stm32f4xx_it.c` already
+moves bytes between the UART and the `uart3` circular buffers. The UART driver itself
+(`uart_ex` and `circular_buffer`) is not in `Core/MyProject_Drivers` yet, so the project does not
+build until it is added. See
+[Adding a driver to a CubeIDE project](../drivers/README.md#adding-a-driver-to-a-cubeide-project).
 
 ## Configuration
 
@@ -35,5 +43,5 @@ Start a debug session and add `adcInfo` and `ioInfo` to **Live Expressions**. Us
 ## Build from the command line
 
 ```sh
-python3 tools/build_cubeide_project.py app --config Release
+python3 tools/build_cubeide_project.py STM_Project_001 --config Release
 ```

@@ -1,9 +1,8 @@
 # 009 – Interrupt-driven UART with circular buffers
 
 USART3 sends and receives through interrupts. Received bytes go into one circular buffer and
-bytes to send wait in another, so the main loop never blocks on the UART. The project uses the
-shared [`uart`](../../drivers/uart/) and [`circular_buffer`](../../drivers/circular_buffer/)
-drivers through the linked `UserDrivers` folder.
+bytes to send wait in another, so the main loop never blocks on the UART. The project keeps its
+own copy of the `uart_ex` and `circular_buffer` drivers in `Core/Inc` and `Core/Src`.
 
 ## Wiring
 
