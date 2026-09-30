@@ -52,9 +52,6 @@ UART_HandleTypeDef huart3;
 /* USER CODE BEGIN PV */
 IO_Info_t ioInfo;
 ADC_Info_t adcInfo;
-UART_Ex_t uart3;
-Circular_Buffer_t uartCbIn;
-Circular_Buffer_t uartCbOut;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -109,7 +106,6 @@ int main(void)
   /* USER CODE BEGIN 2 */
  IO_Initialization(&ioInfo);
  ADC_Initialization(&adcInfo, &hadc1);
- UARTx_Initilalization(&uart3, &huart3, &uartCbIn, &uartCbOut);
  if(adcInfo.adcErrorStatus== ADC_Init_Start_Error)
  {
 	 ioInfo.outputsInfo.ledRed.pinState = GPIO_PIN_SET;
