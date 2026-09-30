@@ -28,5 +28,6 @@ void UARTx_Initilalization(UART_Ex_t *uart,UART_HandleTypeDef *huart,Circular_Bu
 void UARTx_Write(UART_Ex_t *uart , char ch);
 void UARTx_Put_String(UART_Ex_t *uart,char *str);
 int UARTx_Printf(UART_Ex_t *uart ,const char *format, ...);
+bool UARTx_ReadLine(UART_Ex_t *uart, char *lineBuffer, uint16_t maxLen);
 
 #endif /* INC_UART_EX_H_ */

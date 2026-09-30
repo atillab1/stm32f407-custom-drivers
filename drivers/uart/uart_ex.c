@@ -64,3 +64,55 @@ int length = vsnprintf(tx_buffer,sizeof(tx_buffer),format,args);
 
  return length;
 }
+
+
+bool UARTx_ReadLine(UART_Ex_t *uart, char *lineBuffer, uint16_t maxLen)
+{
+	static uint16_t index = 0;
+	static bool messageReady = false;
+	static bool lastCr = false;
+	uint8_t ch = 0;
+
+
+	if(messageReady)
+	{
+		lineBuffer[index] = '\0';
+		index 			  = 0;
+		messageReady 	  = false;
+
+		return true;
+	}
+	while(Circular_Buffer_Dequeue(uart->cbIn, &ch))
+	{
+		if(lastCr && ch == '\n')
+		{
+			messageReady = true;
+			lastCr 		= false;
+			break;
+		}
+
+		if(ch == '\r')
+		{
+			lastCr = true;
+		}
+		else
+		{
+			if(lastCr)
+			{
+				if(index < maxLen-1)
+				{
+					lineBuffer[index++] ='\r';
+
+					lastCr = false;
+				}
+			}
+			if(index < maxLen-1)
+			{
+				lineBuffer[index++] = ch;
+			}
+		}
+
+
+	}
+	return false;
+}
