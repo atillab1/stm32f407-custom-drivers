@@ -1,16 +1,19 @@
 # Drivers
 
-Hand-written drivers used by the projects in this repository. Each folder holds one driver as a
-`.h`/`.c` pair. CubeIDE projects include them through linked folders (see
-[Using a driver in a CubeIDE project](#using-a-driver-in-a-cubeide-project)), so there is only one
-copy of every file.
+Our own driver library: every hand-written driver, one `.h`/`.c` pair per folder. The host
+tests and the static analysis in CI run on these files.
 
-| Driver | Used by | Depends on |
+The CubeIDE projects do not link to this folder. Each project keeps its own copy of the drivers it
+uses, so every project builds on its own (see
+[Adding a driver to a CubeIDE project](#adding-a-driver-to-a-cubeide-project)). When a driver is
+improved inside a project, copy the change here too, so this folder always has the newest version.
+
+| Driver | Copy in the projects | Depends on |
 |---|---|---|
-| [`io`](io/) | `app` | HAL GPIO, pin labels from the project's `main.h` |
-| [`adc`](adc/) | `app` | HAL ADC + DMA, LL ADC helper macros |
-| [`circular_buffer`](circular_buffer/) | `uart`, host tests | standard C only |
-| [`uart`](uart/) | `app`, `examples/009_UART_printf` | HAL UART, `circular_buffer` |
+| [`io`](io/) | `STM_Project_001/Core/MyProject_Drivers/IO_Drivers` | HAL GPIO, pin labels from the project's `main.h` |
+| [`adc`](adc/) | `STM_Project_001/Core/MyProject_Drivers/ADC_Drivers` | HAL ADC + DMA, LL ADC helper macros |
+| [`circular_buffer`](circular_buffer/) | `009_UART_printf/Core` | standard C only |
+| [`uart`](uart/) | `009_UART_printf/Core` | HAL UART, `circular_buffer` |
 
 ## io
 
@@ -89,21 +92,33 @@ It only recognises **CR+LF** line endings, so set the terminal to send CR+LF on 
 state is kept in static variables, so it serves one UART at a time.
 
 The interrupt handler lives in the project's `stm32f4xx_it.c`
-(see [`examples/009_UART_printf`](../examples/009_UART_printf/)). It must check both the TXE flag
+(see [`009_UART_printf`](../009_UART_printf/)). It must check both the TXE flag
 **and** that the TXE interrupt is enabled before touching `cbOut`.
 
 Limitations: characters are dropped when `cbOut` is full, and received bytes stay in `cbIn` until
 the application reads them with `Circular_Buffer_Dequeue()`.
 
-## Using a driver in a CubeIDE project
+## Adding a driver to a CubeIDE project
 
-The projects add drivers as linked folders, which CubeIDE stores in `.project` and `.cproject`:
+`STM_Project_001` keeps its drivers under `Core/MyProject_Drivers`, one folder per driver:
 
-1. Right-click the project → **New → Folder** → **Advanced** → **Folder is not located in the
-   file system (Virtual Folder)** → name it `UserDrivers`.
-2. Right-click `UserDrivers` → **New → Folder** → **Advanced** → **Link to alternate location** →
-   **Variables…** and enter `PARENT-1-PROJECT_LOC/drivers/<name>` (`PARENT-2-…` for a project under
-   `examples/`).
+```
+Core/MyProject_Drivers/
+├── ADC_Drivers/
+│   ├── Inc/adc_driver.h
+│   └── Src/adc_driver.c
+└── IO_Drivers/
+    ├── Inc/io_driver.h
+    └── Src/io_driver.c
+```
+
+To add another one:
+
+1. Right-click `Core/MyProject_Drivers` → **New → Folder** → `<Name>_Drivers`, and inside it two
+   folders, `Inc` and `Src`.
+2. Copy the `.h` file from this library into `Inc` and the `.c` file into `Src`.
 3. **Project → Properties → C/C++ Build → Settings → MCU GCC Compiler → Include paths**: add
-   `${workspace_loc:/${ProjName}/UserDrivers/<name>}` for **both** Debug and Release.
-4. **C/C++ General → Paths and Symbols → Source Location**: add `/UserDrivers` if it is not listed.
+   `${workspace_loc:/${ProjName}/Core/MyProject_Drivers/<Name>_Drivers/Inc}` for **both** Debug
+   and Release.
+
+`Core` is already a source folder, so the `.c` file is compiled without any further setting.
