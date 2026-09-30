@@ -22,6 +22,7 @@
 #include "stm32f4xx_it.h"
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "uart_ex.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -56,8 +57,9 @@
 
 /* External variables --------------------------------------------------------*/
 extern DMA_HandleTypeDef hdma_adc1;
+extern UART_HandleTypeDef huart3;
 /* USER CODE BEGIN EV */
-
+extern UART_Ex_t uart3;
 /* USER CODE END EV */
 
 /******************************************************************************/
@@ -210,6 +212,44 @@ void EXTI1_IRQHandler(void)
   /* USER CODE BEGIN EXTI1_IRQn 1 */
 
   /* USER CODE END EXTI1_IRQn 1 */
+}
+
+/**
+  * @brief This function handles USART3 global interrupt.
+  */
+void USART3_IRQHandler(void)
+{
+  /* USER CODE BEGIN USART3_IRQn 0 */
+	   // Her bir veri geldiginde MCU buraya dallanacak.
+
+		if(__HAL_UART_GET_FLAG(uart3.huart,UART_FLAG_RXNE))
+		{
+			// veri gelmisse interrupt olusmus demektir.
+			uint8_t ch = (uint8_t)(huart3.Instance->DR);// veri geliyorsa da gidiyorsa da data registerina yazilir
+			Circular_Buffer_Enqueue(uart3.cbIn, ch);
+		}
+		if(__HAL_UART_GET_FLAG(uart3.huart,UART_FLAG_TXE))
+		{
+			if(!Circular_Buffer_Is_Empty(uart3.cbOut))
+			{
+				uint8_t ch;
+				if(Circular_Buffer_Dequeue(uart3.cbOut,&ch))
+				{
+					uart3.huart->Instance->DR = ch;
+				}
+			}
+			else
+			{
+				__HAL_UART_DISABLE_IT(uart3.huart,UART_IT_TXE);
+			}
+		}
+
+
+  /* USER CODE END USART3_IRQn 0 */
+  HAL_UART_IRQHandler(&huart3);
+  /* USER CODE BEGIN USART3_IRQn 1 */
+
+  /* USER CODE END USART3_IRQn 1 */
 }
 
 /**
