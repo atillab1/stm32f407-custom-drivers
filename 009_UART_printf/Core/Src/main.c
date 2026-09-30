@@ -98,6 +98,8 @@ int main(void)
 
 UARTx_Initilalization(&uart3, &huart3, &uartCbIn, &uartCbOut);
 
+char lineBuffer[128];
+
 
   /* USER CODE END 2 */
 
@@ -106,7 +108,10 @@ UARTx_Initilalization(&uart3, &huart3, &uartCbIn, &uartCbOut);
   while (1)
   {
     /* USER CODE END WHILE */
-
+	  	 if(UARTx_ReadLine(&uart3, lineBuffer, sizeof(lineBuffer)))
+	  	 {
+	  		 UARTx_Printf(&uart3,"Gelen Mesaj %s",lineBuffer );
+	  	 }
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
