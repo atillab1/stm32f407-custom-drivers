@@ -81,6 +81,12 @@ one for bytes waiting to be sent.
 | `UARTx_Write(uart, ch)` | Queue one character for sending |
 | `UARTx_Put_String(uart, str)` | Queue a string |
 | `UARTx_Printf(uart, fmt, ...)` | Format up to 255 characters and queue them |
+| `UARTx_ReadLine(uart, buf, maxLen)` | Collect received bytes into `buf` until `"\r\n"`; returns `true` once when a complete line is ready |
+
+`UARTx_ReadLine()` is meant to be called from the main loop with the same buffer every time: it
+keeps the partial line in `buf` between calls and reports the finished line on the following call.
+It only recognises **CR+LF** line endings, so set the terminal to send CR+LF on Enter. Its
+state is kept in static variables, so it serves one UART at a time.
 
 The interrupt handler lives in the project's `stm32f4xx_it.c`
 (see [`examples/009_UART_printf`](../examples/009_UART_printf/)). It must check both the TXE flag

@@ -38,28 +38,22 @@ Open a serial terminal (PuTTY, Tera Term, CubeIDE terminal) at **115200 baud, 8N
 
 ## Try it
 
-The main loop is still empty. To see both directions working, print a banner and echo every
-received byte back:
+The main loop reads complete lines with `UARTx_ReadLine()` and answers each one:
 
 ```c
-  /* USER CODE BEGIN 2 */
-  UARTx_Initilalization(&uart3, &huart3, &uartCbIn, &uartCbOut);
-  UARTx_Printf(&uart3, "009_UART_printf ready\r\n");
-  /* USER CODE END 2 */
-
-  while (1)
-  {
-    /* USER CODE END WHILE */
-
     /* USER CODE BEGIN 3 */
-    uint8_t ch;
-    if (Circular_Buffer_Dequeue(&uartCbIn, &ch))
+    if (UARTx_ReadLine(&uart3, lineBuffer, sizeof(lineBuffer)))
     {
-      UARTx_Write(&uart3, (char)ch);   /* echo */
+      UARTx_Printf(&uart3, "Gelen Mesaj %s", lineBuffer);
     }
-  }
-  /* USER CODE END 3 */
 ```
+
+1. Set the terminal to send **CR+LF** on Enter (Tera Term: *Setup → Terminal → New-line →
+   Transmit: CR+LF*). With CR only or LF only the line is never completed.
+2. Type `merhaba` and press Enter; the board answers `Gelen Mesaj merhaba`.
+
+The answer has no line ending of its own, so consecutive answers appear on one line; add `\r\n`
+to the format string to put each on its own line.
 
 ## Notes
 
