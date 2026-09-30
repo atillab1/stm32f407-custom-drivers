@@ -9,7 +9,7 @@ and the STM32Cube HAL.
 
 - [`drivers/`](drivers/) — reusable drivers written on top of the HAL: GPIO with debounce,
   ADC with DMA, a circular buffer and an interrupt-driven UART.
-- [`app/`](app/) — the main application, built from the GPIO and ADC drivers.
+- [`app/`](app/) — the main application, built from the GPIO, ADC and UART drivers.
 - [`examples/`](examples/) — one small CubeIDE project per peripheral feature, each with its own README.
 - [`tests/`](tests/) — host-side unit tests for the hardware-independent code.
 
@@ -23,7 +23,7 @@ Every push is checked by CI: unit tests, static analysis and a firmware build of
 | MCU | STM32F407VGT6 (Arm Cortex-M4F) |
 | System clock | `app/`: HSI 16 MHz → PLL → **168 MHz**. Examples: HSI **16 MHz**, no PLL |
 | On-board I/O used | User button on **PA0**; LEDs on **PD12** (green), **PD13** (orange), **PD14** (red), **PD15** (blue) |
-| UART (example 009) | USART3: **PB10** TX, **PB11** RX, 115200 8N1 |
+| UART (`app/`, example 009) | USART3: **PB10** TX, **PB11** RX, 115200 8N1 |
 | Debug probe | On-board ST-LINK |
 
 ## Repository layout
@@ -48,15 +48,18 @@ The drivers live in one place and are **not copied** into the projects. `app/` a
 
 ## Main application
 
-`app/` combines the GPIO and ADC drivers. Each driver keeps its state in one struct, and the main
+`app/` combines the GPIO, ADC and UART drivers. Each driver keeps its state in one struct, and the main
 loop calls a single update function per driver:
 
 ```c
 IO_Info_t  ioInfo;
 ADC_Info_t adcInfo;
+UART_Ex_t  uart3;
+Circular_Buffer_t uartCbIn, uartCbOut;
 
 IO_Initialization(&ioInfo);
 ADC_Initialization(&adcInfo, &hadc1);
+UARTx_Initilalization(&uart3, &huart3, &uartCbIn, &uartCbOut);
 
 while (1)
 {
@@ -66,7 +69,8 @@ while (1)
 ```
 
 At start-up the green LED lights when ADC + DMA started correctly, the red LED when they failed.
-The ADC samples PA2 and PA3, the internal temperature sensor, VREFINT and VBAT.
+The ADC samples PA2 and PA3, the internal temperature sensor, VREFINT and VBAT. USART3 runs at
+115200 baud on PB10/PB11 and is ready for `UARTx_Printf()`.
 
 ## Drivers
 
@@ -141,7 +145,7 @@ request:
 - [x] Split the repository into `drivers/`, `app/` and `examples/`
 - [x] Host-side unit tests for hardware-independent modules
 - [x] CI with static analysis and firmware builds
-- [ ] UART in the main application
+- [x] UART in the main application
 - [ ] MISRA C checks in CI
 - [ ] I2C and SPI sensor drivers
 - [ ] FreeRTOS version of the main application

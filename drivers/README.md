@@ -10,7 +10,7 @@ copy of every file.
 | [`io`](io/) | `app` | HAL GPIO, pin labels from the project's `main.h` |
 | [`adc`](adc/) | `app` | HAL ADC + DMA, LL ADC helper macros |
 | [`circular_buffer`](circular_buffer/) | `uart`, host tests | standard C only |
-| [`uart`](uart/) | `examples/009_UART_printf` | HAL UART, `circular_buffer` |
+| [`uart`](uart/) | `app`, `examples/009_UART_printf` | HAL UART, `circular_buffer` |
 
 ## io
 
