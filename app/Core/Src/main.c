@@ -23,6 +23,7 @@
 /* USER CODE BEGIN Includes */
 #include "io_driver.h"
 #include "adc_driver.h"
+#include "uart_ex.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -46,9 +47,14 @@ DMA_HandleTypeDef hdma_adc1;
 
 DAC_HandleTypeDef hdac;
 
+UART_HandleTypeDef huart3;
+
 /* USER CODE BEGIN PV */
 IO_Info_t ioInfo;
 ADC_Info_t adcInfo;
+UART_Ex_t uart3;
+Circular_Buffer_t uartCbIn;
+Circular_Buffer_t uartCbOut;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -57,6 +63,7 @@ static void MX_GPIO_Init(void);
 static void MX_DMA_Init(void);
 static void MX_ADC1_Init(void);
 static void MX_DAC_Init(void);
+static void MX_USART3_UART_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -98,9 +105,11 @@ int main(void)
   MX_DMA_Init();
   MX_ADC1_Init();
   MX_DAC_Init();
+  MX_USART3_UART_Init();
   /* USER CODE BEGIN 2 */
  IO_Initialization(&ioInfo);
  ADC_Initialization(&adcInfo, &hadc1);
+ UARTx_Initilalization(&uart3, &huart3, &uartCbIn, &uartCbOut);
  if(adcInfo.adcErrorStatus== ADC_Init_Start_Error)
  {
 	 ioInfo.outputsInfo.ledRed.pinState = GPIO_PIN_SET;
@@ -300,6 +309,39 @@ static void MX_DAC_Init(void)
 }
 
 /**
+  * @brief USART3 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_USART3_UART_Init(void)
+{
+
+  /* USER CODE BEGIN USART3_Init 0 */
+
+  /* USER CODE END USART3_Init 0 */
+
+  /* USER CODE BEGIN USART3_Init 1 */
+
+  /* USER CODE END USART3_Init 1 */
+  huart3.Instance = USART3;
+  huart3.Init.BaudRate = 115200;
+  huart3.Init.WordLength = UART_WORDLENGTH_8B;
+  huart3.Init.StopBits = UART_STOPBITS_1;
+  huart3.Init.Parity = UART_PARITY_NONE;
+  huart3.Init.Mode = UART_MODE_TX_RX;
+  huart3.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+  huart3.Init.OverSampling = UART_OVERSAMPLING_16;
+  if (HAL_UART_Init(&huart3) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN USART3_Init 2 */
+
+  /* USER CODE END USART3_Init 2 */
+
+}
+
+/**
   * Enable DMA controller clock
   */
 static void MX_DMA_Init(void)
@@ -329,6 +371,7 @@ static void MX_GPIO_Init(void)
   /* GPIO Ports Clock Enable */
   __HAL_RCC_GPIOH_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
+  __HAL_RCC_GPIOB_CLK_ENABLE();
   __HAL_RCC_GPIOD_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
