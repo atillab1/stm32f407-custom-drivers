@@ -12,8 +12,8 @@ improved inside a project, copy the change here too, so this folder always has t
 |---|---|---|
 | [`io`](io/) | `STM_Project_001/Core/MyProject_Drivers/IO_Drivers` | HAL GPIO, pin labels from the project's `main.h` |
 | [`adc`](adc/) | `STM_Project_001/Core/MyProject_Drivers/ADC_Drivers` | HAL ADC + DMA, LL ADC helper macros |
-| [`circular_buffer`](circular_buffer/) | `009_UART_printf/Core` | standard C only |
-| [`uart`](uart/) | `009_UART_printf/Core` | HAL UART, `circular_buffer` |
+| [`circular_buffer`](circular_buffer/) | `009_UART_printf/Core`, `STM_Project_001/Core/MyProject_Drivers/Circular_Buffer_Drivers` | standard C only |
+| [`uart`](uart/) | `009_UART_printf/Core`, `STM_Project_001/Core/MyProject_Drivers/UART_Drivers` | HAL UART, `circular_buffer` |
 
 ## io
 
@@ -43,13 +43,13 @@ accumulates 64 complete frames and then refreshes the averaged results.
 | `adcVoltageData[]` | Channel voltages in V, based on `realVDDA` |
 | `temprature` | Die temperature in °C, from the factory calibration values |
 | `vBAT` | VBAT in V (the channel measures VBAT/2 on STM32F40x, the driver scales it back) |
-| `potPercentage` | PA2 voltage mapped to 0–100 % |
+| `potPercentage` | PA2 voltage as a share of the measured supply (`realVDDA`), 0–100 % |
 
 | Function | Purpose |
 |---|---|
 | `ADC_Initialization(ADC_Info_t *, ADC_HandleTypeDef *)` | Start ADC + DMA; sets `adcErrorStatus` on failure |
 | `ADC_DMA_Conversion(ADC_Info_t *)` | Process finished DMA frames; call every loop |
-| `MAP_Voltage_To_Percantage(...)` | Linear map from a voltage range to an integer range |
+| `MAP_Voltage_To_Percantage(...)` | Linear map from a voltage range to an integer range, rounded to the nearest integer |
 
 ## circular_buffer
 
@@ -95,6 +95,9 @@ The interrupt handler lives in the project's `stm32f4xx_it.c`
 (see [`009_UART_printf`](../009_UART_printf/)). It must check both the TXE flag
 **and** that the TXE interrupt is enabled before touching `cbOut`.
 
+`HAL_UART_IRQHandler()` switches the RXNE interrupt off when it sees an overrun. `STM_Project_001`
+switches it back on in `HAL_UART_ErrorCallback()` (`Core/Src/main.c`).
+
 Limitations: characters are dropped when `cbOut` is full, and received bytes stay in `cbIn` until
 the application reads them with `Circular_Buffer_Dequeue()`.
 
@@ -107,9 +110,15 @@ Core/MyProject_Drivers/
 ├── ADC_Drivers/
 │   ├── Inc/adc_driver.h
 │   └── Src/adc_driver.c
-└── IO_Drivers/
-    ├── Inc/io_driver.h
-    └── Src/io_driver.c
+├── Circular_Buffer_Drivers/
+│   ├── Inc/circular_buffer.h
+│   └── Src/circular_buffer.c
+├── IO_Drivers/
+│   ├── Inc/io_driver.h
+│   └── Src/io_driver.c
+└── UART_Drivers/
+    ├── Inc/uart_ex.h
+    └── Src/uart_ex.c
 ```
 
 To add another one:

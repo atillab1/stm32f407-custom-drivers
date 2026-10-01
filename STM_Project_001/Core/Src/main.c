@@ -52,6 +52,9 @@ UART_HandleTypeDef huart3;
 /* USER CODE BEGIN PV */
 IO_Info_t ioInfo;
 ADC_Info_t adcInfo;
+UART_Ex_t uart3;
+Circular_Buffer_t uartCbIn;
+Circular_Buffer_t uartCbOut;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -104,6 +107,7 @@ int main(void)
   MX_DAC_Init();
   MX_USART3_UART_Init();
   /* USER CODE BEGIN 2 */
+ UARTx_Initilalization(&uart3, &huart3, &uartCbIn, &uartCbOut);
  IO_Initialization(&ioInfo);
  ADC_Initialization(&adcInfo, &hadc1);
  if(adcInfo.adcErrorStatus== ADC_Init_Start_Error)
@@ -401,7 +405,23 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-
+/**
+  * @brief  UART error callback
+  * @param  huart pointer to a UART_HandleTypeDef structure that contains
+  *         the configuration information for the specified UART module.
+  * @retval None
+  */
+void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart)
+{
+	// HAL_UART_IRQHandler overrun (ORE) gorunce RXNE kesmesini kapatir ve geri acmaz.
+	// Bayragi temizleyip kesmeyi yeniden acmazsak UART bir daha veri almaz.
+	if(huart == uart3.huart)
+	{
+		__HAL_UART_CLEAR_OREFLAG(huart);
+		huart->ErrorCode = HAL_UART_ERROR_NONE;
+		__HAL_UART_ENABLE_IT(huart, UART_IT_RXNE);
+	}
+}
 /* USER CODE END 4 */
 
 /**

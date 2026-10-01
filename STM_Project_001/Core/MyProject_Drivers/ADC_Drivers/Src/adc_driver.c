@@ -73,9 +73,11 @@ void ADC_DMA_Conversion(ADC_Info_t *adcInfo)
         	        // STM32F40x/41x'te VBAT kanali icerde 2'ye bolunmus olarak olculur (RM0090, VBAT/2)
         	        adcInfo->vBAT = adcInfo->adcVoltageData[ADC_Channel_Vbat] * 2.0f;
 
+        	        // Ust sinir sabit 3.3V degil olculen VDDA: pot beslemeye bagli oldugu icin
+        	        // (Discovery'de ~3.0V) sabit 3.3V ile yuzde hicbir zaman 100'e ulasmaz.
         	        adcInfo->potPercentage = MAP_Voltage_To_Percantage(adcInfo->adcVoltageData[ADC_Channel_2],
         	                                                            0.0f,
-        	                                                            3.3f,
+        	                                                            adcInfo->realVDDA / 1000.0f,
         	                                                            0,
         	                                                            100);
         }
@@ -85,7 +87,13 @@ void ADC_DMA_Conversion(ADC_Info_t *adcInfo)
 uint8_t MAP_Voltage_To_Percantage(float voltage, float inMin, float inMax, uint8_t outMin, uint8_t outMax)
 {
 uint8_t percentage =0;
-percentage = (voltage-inMin)*(outMax-outMin)/(inMax-inMin)+(outMin);
+// inMax olculen bir deger (VDDA) olabilir: aralik gecersizse 0'a bolmek yerine alt siniri dondur
+if(inMax <= inMin)
+{
+	return outMin;
+}
+// +0.5f: float -> uint8_t donusumu kirptigi icin en yakin tam sayiya yuvarlar
+percentage = (voltage-inMin)*(outMax-outMin)/(inMax-inMin)+(outMin)+0.5f;
 return percentage;
 }
 

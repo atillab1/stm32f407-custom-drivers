@@ -71,7 +71,8 @@ while (1)
 
 At start-up the green LED lights when ADC + DMA started correctly, the red LED when they failed.
 The ADC samples PA2 and PA3, the internal temperature sensor, VREFINT and VBAT. USART3 (115200 baud,
-PB10/PB11) and its interrupt are set up; the UART driver is being added to `Core/MyProject_Drivers`.
+PB10/PB11) is set up with the UART driver and its two circular buffers; the main loop does not use
+it yet.
 
 ## Drivers
 
@@ -146,7 +147,7 @@ request:
 - [x] One folder per CubeIDE project, plus a driver library in `drivers/`
 - [x] Host-side unit tests for hardware-independent modules
 - [x] CI with static analysis and firmware builds
-- [ ] UART driver in the main application
+- [x] UART driver in the main application
 - [ ] MISRA C checks in CI
 - [ ] I2C and SPI sensor drivers
 - [ ] FreeRTOS version of the main application

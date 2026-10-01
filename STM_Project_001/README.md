@@ -7,6 +7,8 @@ The main application of the repository. Its hand-written drivers live inside the
 |---|---|
 | `Core/MyProject_Drivers/IO_Drivers` | [`io`](../drivers/io/): user button and LEDs |
 | `Core/MyProject_Drivers/ADC_Drivers` | [`adc`](../drivers/adc/): ADC1 + DMA, VDDA, temperature, VBAT |
+| `Core/MyProject_Drivers/UART_Drivers` | [`uart`](../drivers/uart/): interrupt-driven USART3 |
+| `Core/MyProject_Drivers/Circular_Buffer_Drivers` | [`circular_buffer`](../drivers/circular_buffer/): RX and TX queues of the UART driver |
 
 ## What it does
 
@@ -15,13 +17,16 @@ The main application of the repository. Its hand-written drivers live inside the
   voltages, the real supply voltage (VDDA), the die temperature and VBAT.
 - Lights the green LED when ADC + DMA started, the red LED when they failed.
 
-## Work in progress: UART
+## UART
 
-USART3 is configured in CubeMX and `USART3_IRQHandler()` in `Core/Src/stm32f4xx_it.c` already
-moves bytes between the UART and the `uart3` circular buffers. The UART driver itself
-(`uart_ex` and `circular_buffer`) is not in `Core/MyProject_Drivers` yet, so the project does not
-build until it is added. See
-[Adding a driver to a CubeIDE project](../drivers/README.md#adding-a-driver-to-a-cubeide-project).
+USART3 is configured in CubeMX and `USART3_IRQHandler()` in `Core/Src/stm32f4xx_it.c` moves bytes
+between the UART and the `uart3` circular buffers. `main()` binds them with
+`UARTx_Initilalization(&uart3, &huart3, &uartCbIn, &uartCbOut)`. The main loop does not send or
+read anything yet.
+
+`HAL_UART_IRQHandler()` still runs after the custom code and switches the RXNE interrupt off when
+it sees an overrun. `HAL_UART_ErrorCallback()` in `Core/Src/main.c` clears the flag and switches
+the interrupt back on, so reception continues.
 
 ## Configuration
 
