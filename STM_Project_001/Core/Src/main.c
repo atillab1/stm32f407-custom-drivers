@@ -52,6 +52,9 @@ UART_HandleTypeDef huart3;
 /* USER CODE BEGIN PV */
 IO_Info_t ioInfo;
 ADC_Info_t adcInfo;
+UART_Ex_t uart3;
+Circular_Buffer_t uartCbIn;
+Circular_Buffer_t uartCbOut;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -104,6 +107,7 @@ int main(void)
   MX_DAC_Init();
   MX_USART3_UART_Init();
   /* USER CODE BEGIN 2 */
+ UARTx_Initilalization(&uart3, &huart3, &uartCbIn, &uartCbOut);
  IO_Initialization(&ioInfo);
  ADC_Initialization(&adcInfo, &hadc1);
  if(adcInfo.adcErrorStatus== ADC_Init_Start_Error)
