@@ -405,7 +405,23 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-
+/**
+  * @brief  UART error callback
+  * @param  huart pointer to a UART_HandleTypeDef structure that contains
+  *         the configuration information for the specified UART module.
+  * @retval None
+  */
+void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart)
+{
+	// HAL_UART_IRQHandler overrun (ORE) gorunce RXNE kesmesini kapatir ve geri acmaz.
+	// Bayragi temizleyip kesmeyi yeniden acmazsak UART bir daha veri almaz.
+	if(huart == uart3.huart)
+	{
+		__HAL_UART_CLEAR_OREFLAG(huart);
+		huart->ErrorCode = HAL_UART_ERROR_NONE;
+		__HAL_UART_ENABLE_IT(huart, UART_IT_RXNE);
+	}
+}
 /* USER CODE END 4 */
 
 /**
