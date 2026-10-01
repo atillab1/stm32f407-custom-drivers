@@ -55,6 +55,9 @@ ADC_Info_t adcInfo;
 UART_Ex_t uart3;
 Circular_Buffer_t uartCbIn;
 Circular_Buffer_t uartCbOut;
+
+char rxBuffer[128];
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -107,16 +110,25 @@ int main(void)
   MX_DAC_Init();
   MX_USART3_UART_Init();
   /* USER CODE BEGIN 2 */
- UARTx_Initilalization(&uart3, &huart3, &uartCbIn, &uartCbOut);
  IO_Initialization(&ioInfo);
+ UARTx_Initilalization(&uart3, &huart3, &uartCbIn, &uartCbOut);
  ADC_Initialization(&adcInfo, &hadc1);
  if(adcInfo.adcErrorStatus== ADC_Init_Start_Error)
  {
-	 ioInfo.outputsInfo.ledRed.pinState = GPIO_PIN_SET;
+	UARTx_Printf(&uart3, "ADC initialization ERROR!");
  }
  else
  {
-	 ioInfo.outputsInfo.ledGreen.pinState = GPIO_PIN_SET;
+	 UARTx_Printf(&uart3, "ADC initialization successfull!\r\n");
+ }
+
+ if(HAL_DAC_Start(&hdac, DAC_CHANNEL_1)==HAL_OK)
+ {
+	 UARTx_Printf(&uart3, "DAC initialization ERROR!");
+ }
+ else
+ {
+	 UARTx_Printf(&uart3, "DAC initialization successfull!\r\n");
  }
   /* USER CODE END 2 */
 
@@ -129,6 +141,45 @@ int main(void)
     /* USER CODE BEGIN 3 */
 	  IO_Status_Control(&ioInfo);
 	  ADC_DMA_Conversion(&adcInfo);
+
+	  HAL_DAC_SetValue(&hdac, DAC_CHANNEL_1, DAC_ALIGN_12B_R, adcInfo.adcAverageData[ADC_Channel_3]);
+
+
+	  if(UARTx_ReadLine(&uart3, rxBuffer, sizeof(rxBuffer)))
+	  {
+		  if(strstr(rxBuffer,"LED1 = ON ")!=NULL)
+		  {
+			  ioInfo.outputsInfo.ledGreen.pinState = GPIO_PIN_SET;
+		  }
+		  else if(strstr(rxBuffer,"LED2 = OFF ")!=NULL)
+		  {
+			  // UART driverini kullanarak kullaniciya mesaj da verilebilir
+			  ioInfo.outputsInfo.ledBlue.pinState = GPIO_PIN_RESET;
+		  }
+		  else
+		  {
+			  // TODO: farkli pinler icinde islemler yapilabilir
+		  }
+
+		  if(strncmp(rxBuffer, "LED2=", 5) == 0)
+		  {
+		  	char val = rxBuffer[5];
+
+		  	if(val == '1')
+		  	{
+		  		ioInfo.outputsInfo.ledBlue.pinState = GPIO_PIN_SET;
+		  	}
+		  	else if(val == '0')
+		  	{
+		  		ioInfo.outputsInfo.ledBlue.pinState = GPIO_PIN_RESET;
+		  	}
+		  	else
+		  	{
+		  		UARTx_Printf(&uart3, "0 ya da 1 degerini giriniz!\r\n");
+		  	}
+		  }
+	  }
+
   }
   /* USER CODE END 3 */
 }
@@ -405,12 +456,6 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-/**
-  * @brief  UART error callback
-  * @param  huart pointer to a UART_HandleTypeDef structure that contains
-  *         the configuration information for the specified UART module.
-  * @retval None
-  */
 void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart)
 {
 	// HAL_UART_IRQHandler overrun (ORE) gorunce RXNE kesmesini kapatir ve geri acmaz.
