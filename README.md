@@ -9,7 +9,7 @@ and the STM32Cube HAL.
 
 - [`STM_Project_001/`](STM_Project_001/) — the main application, built from the GPIO and ADC
   drivers.
-- `001_TIMER/` … `009_UART_printf/` — one small CubeIDE project per peripheral feature, each with
+- `001_TIMER_External_Trigger_Mode/` … `009_UART_printf/` — one small CubeIDE project per peripheral feature, each with
   its own README.
 - [`drivers/`](drivers/) — our own driver library: GPIO with debounce, ADC with DMA, a circular
   buffer and an interrupt-driven UART.
@@ -33,7 +33,7 @@ Every push is checked by CI: unit tests, static analysis and a firmware build of
 ```
 .
 ├── STM_Project_001/          main application (STM32CubeIDE project)
-├── 001_TIMER/ … 009_UART_printf/
+├── 001_TIMER_External_Trigger_Mode/ … 009_UART_printf/
 │                             example projects, one CubeIDE project each
 ├── drivers/                  our own driver library (see drivers/README.md)
 │   ├── io/                   GPIO inputs/outputs with software debounce
@@ -89,7 +89,7 @@ The API of each driver is described in [`drivers/README.md`](drivers/README.md).
 
 | # | Project | Peripheral and mode | What it shows |
 |---|---|---|---|
-| 001 | [`001_TIMER`](001_TIMER/) | TIM2, external clock mode 1 (TI1FP1, PA0) | Counts rising edges on the user button |
+| 001 | [`001_TIMER_External_Trigger_Mode`](001_TIMER_External_Trigger_Mode/) | TIM2, external clock mode 1 (TI1FP1, PA0) | Counts rising edges on the user button |
 | 002 | [`002_TIMER_External_Trigger_Mode2`](002_TIMER_External_Trigger_Mode2/) | TIM2, external clock mode 2 (ETR, PA0) | Measures the frequency of the MCO1 clock output |
 | 003 | [`003_TIMER_Internal_Trigger_Mode3`](003_TIMER_Internal_Trigger_Mode3/) | TIM2 → TIM1 via ITR1, slave trigger mode | One timer starts another in hardware |
 | 004 | [`004_TIMER_Slave_Mode_Reset_Mode`](004_TIMER_Slave_Mode_Reset_Mode/) | TIM2, slave reset mode (PA0) | Milliseconds since the last button press |
@@ -102,15 +102,19 @@ The API of each driver is described in [`drivers/README.md`](drivers/README.md).
 ## Getting started
 
 1. Clone the repository.
-2. In STM32CubeIDE choose **File → Import → General → Existing Projects into Workspace**.
-3. Select the cloned folder as the root directory, tick **Search for nested projects** and leave
-   **Copy projects into workspace** unticked, so that edits go straight into the repository.
+2. Start STM32CubeIDE and choose the cloned folder itself as the workspace
+   (**File → Switch Workspace → Other…**).
+3. Choose **File → Import → General → Existing Projects into Workspace**, select the same folder
+   as the root directory, tick **Search for nested projects** and leave **Copy projects into
+   workspace** unticked.
 4. Select the projects you want and click **Finish**. The main application appears as
    `STM_Project_001`.
 5. Connect the board over USB, build a project and start a debug session.
 
-Tip: use a workspace folder that does not already contain projects with the same names, otherwise
-CubeIDE refuses to import them.
+With the repository as the workspace, a new project created with **Use default location** lands
+in the repository, ready to commit. CubeIDE keeps its own settings in `.metadata/`, which Git
+ignores. Each project folder has the same name as its project; CubeIDE requires this for projects
+inside the workspace folder.
 
 Most examples store their counters in global variables. Add them to the **Live Expressions** view
 while debugging to watch them change.
