@@ -40,7 +40,7 @@ jobs:
       matrix:
         project:
           - STM_Project_001
-          - 001_TIMER
+          - 001_TIMER_External_Trigger_Mode
           - 002_TIMER_External_Trigger_Mode2
           - 003_TIMER_Internal_Trigger_Mode3
           - 004_TIMER_Slave_Mode_Reset_Mode
