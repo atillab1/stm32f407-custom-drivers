@@ -25,7 +25,7 @@ void LCD_Initialization(LCD_t *lcd){
 	HAL_Delay(1);
 
 	// Artik 4 bitlik komutlarla calisiyorum
-	LCD_Send_Command(lcd, LCD_Cmd_FunctionSet|LCD_4BIT_MODE, LCD_2_LINE,LCD_5x8_DOTS);
+	LCD_Send_Command(lcd, LCD_Cmd_FunctionSet|LCD_4BIT_MODE| LCD_2_LINE| LCD_5x8_DOTS);
 	HAL_Delay(1);
 
 	lcd->display_control = LCD_Display_On;
@@ -43,6 +43,85 @@ void LCD_Initialization(LCD_t *lcd){
 	 else
 		 LCD_Backlight_Off(lcd);
 }
+
+void LCD_Send_Command(LCD_t *lcd, uint8_t cmd)
+{
+	uint8_t data_u = cmd & 0xF0;
+	uint8_t data_l = (cmd<<4) & 0xF0;
+
+	uint8_t data_t[4];
+
+	data_t[0] = (data_u) | 0x04 | (lcd->backlight ? 0x08 : 0x00); // EN=1
+	data_t[1] = 		(data_u) | (lcd->backlight ? 0x08 : 0x00); // EN=0
+	data_t[2] = (data_l) | 0x04 | (lcd->backlight ? 0x08 : 0x00);
+	data_t[3] = 		(data_l) |  (lcd->backlight ? 0x08 : 0x00);
+
+	HAL_I2C_Master_Transmit(lcd->hi2c, lcd->i2c_addr, data_t, 4, 100);
+	HAL_Delay(1);
+}
+
+void LCD_Clear(LCD_t *lcd)
+{
+	LCD_Send_Command(lcd, LCD_Cmd_ClearDisplay);
+		HAL_Delay(2);
+
+}
+
+
+void LCD_Set_Cursor(LCD_t *lcd,uint8_t row, uint8_t column)
+{
+
+	const uint8_t row_offset [] = {0x00, 0x40};
+
+	if(row >= lcd->rows)
+		row = 0;
+
+	if(column>= lcd->columns)
+		column = 15;
+
+	LCD_Send_Command(lcd, LCD_Cmd_Set_DDRAM_ADDRESS | (column + row_offset[row]));
+
+}
+
+void LCD_Send_String(LCD_t *lcd, const char *str)
+{
+	while(*str)
+	{
+		LCD_Send_Data(lcd, (uint8_t)*str++);
+	}
+
+
+}
+void LCD_Send_Data(LCD_t *lcd, uint8_t data)
+{
+	uint8_t data_u = data & 0xF0;
+	uint8_t data_l = (data<<4) & 0xF0;
+
+	uint8_t data_t[4];
+
+		data_t[0] = data_u | 0x05 | (lcd->backlight ? 0x08 : 0x00); // bu islemler instruction setten dolayi boyle RS = 1 , EN = 1
+		data_t[1] = data_u | 0x01|(lcd->backlight ? 0x08 : 0x00);// rs 1
+		data_t[2] = data_l |0x05 | (lcd->backlight ? 0x08 : 0x00); // rs 1
+		data_t[3] = data_l | 0x01 |(lcd->backlight ? 0x08 : 0x00);// rs 1
+
+		HAL_I2C_Master_Transmit(lcd->hi2c, lcd->i2c_addr, data_t, 4, 100);
+			HAL_Delay(1);
+}
+
+
+void LCD_Backlight_On(LCD_t *lcd){
+
+	lcd->backlight = true;
+	LCD_Send_Command(lcd, 0x00);
+
+}
+void LCD_Backlight_Off(LCD_t *lcd){
+	lcd->backlight = false;
+	LCD_Send_Command(lcd, 0x00);
+}
+
+
+
 // LCD ekran baslarken kendini 8 bit modda zannediyor biz 4 bitlik modda kualllanacagiz
 //bundan dolayi 8 bitin yalnizca ilk 4bitini gonderecegiz
 void LCD_Send_InitNibble(LCD_t *lcd ,uint8_t nibble){

@@ -69,7 +69,7 @@ void LCD_Home (LCD_t *lcd);
 void LCD_Set_Cursor(LCD_t *lcd,uint8_t row, uint8_t column);
 void LCD_Send_Char(LCD_t *lcd, char ch );
 void LCD_Send_String(LCD_t *lcd, const char *str);
-void LCD_Send_Command(LCD_t *lcd, uint8_t command);
+void LCD_Send_Command(LCD_t *lcd, uint8_t cmd);
 void LCD_Send_Data(LCD_t *lcd, uint8_t data);
 void LCD_Backlight_On(LCD_t *lcd);
 void LCD_Backlight_Off(LCD_t *lcd);

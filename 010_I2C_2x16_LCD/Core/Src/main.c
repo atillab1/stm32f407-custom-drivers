@@ -21,7 +21,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "lcd_2x16_driver.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -44,9 +44,16 @@ I2C_HandleTypeDef hi2c1;
 
 /* USER CODE BEGIN PV */
 
-int i = 0;
-uint8_t adress[2];
-int counter;
+LCD_t lcd =
+{
+		.hi2c = &hi2c1,
+		.i2c_addr = LCD_I2C_DEVICE_ADDRESS,
+		.rows 	= 2,
+		.columns = 16,
+		.backlight = true,
+};
+
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -93,14 +100,12 @@ int main(void)
   MX_GPIO_Init();
   MX_I2C1_Init();
   /* USER CODE BEGIN 2 */
+  LCD_Initialization(&lcd);
+  LCD_Clear(&lcd);
+  LCD_Set_Cursor(&lcd, 0, 0);
+  LCD_Send_String(&lcd, "Merhaba!");
+  HAL_Delay(100);
 
-  for(i =0; i<255; i++)
-  {
-	  if(HAL_I2C_IsDeviceReady(&hi2c1, i, 1, 100)== HAL_OK)// klasik ilk parametre isaretci
-	  {													   // ikinci parametre device adresi
-		  	  adress[counter++] = i;	  	  	  	  	  	  	  	  	  	   // 3. parametre kac deneme yapsin ve dorduncu parametre kac ms beklesin
-	  }
-  }
 
   /* USER CODE END 2 */
 
