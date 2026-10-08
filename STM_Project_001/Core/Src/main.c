@@ -24,6 +24,7 @@
 #include "io_driver.h"
 #include "adc_driver.h"
 #include "uart_ex.h"
+#include "lcd_2x16_driver.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -47,6 +48,8 @@ DMA_HandleTypeDef hdma_adc1;
 
 DAC_HandleTypeDef hdac;
 
+I2C_HandleTypeDef hi2c1;
+
 UART_HandleTypeDef huart3;
 
 /* USER CODE BEGIN PV */
@@ -55,6 +58,15 @@ ADC_Info_t adcInfo;
 UART_Ex_t uart3;
 Circular_Buffer_t uartCbIn;
 Circular_Buffer_t uartCbOut;
+
+LCD_t lcd =
+{
+		.hi2c = &hi2c1,
+		.i2c_addr = LCD_I2C_DEVICE_ADDRESS,
+		.rows 	= 2,
+		.columns = 16,
+		.backlight = true,
+};
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -64,6 +76,7 @@ static void MX_DMA_Init(void);
 static void MX_ADC1_Init(void);
 static void MX_DAC_Init(void);
 static void MX_USART3_UART_Init(void);
+static void MX_I2C1_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -106,18 +119,63 @@ int main(void)
   MX_ADC1_Init();
   MX_DAC_Init();
   MX_USART3_UART_Init();
+  MX_I2C1_Init();
   /* USER CODE BEGIN 2 */
- UARTx_Initilalization(&uart3, &huart3, &uartCbIn, &uartCbOut);
- IO_Initialization(&ioInfo);
+
+
+  IO_Initialization(&ioInfo);
+  UARTx_Initilalization(&uart3, &huart3, &uartCbIn, &uartCbOut);
+
+  LCD_Initialization(&lcd);
+  LCD_Clear(&lcd);
+  LCD_Set_Cursor(&lcd, 0, 0);
+  LCD_Send_String(&lcd, "STM Project!");
+  HAL_Delay(100);
+
+
  ADC_Initialization(&adcInfo, &hadc1);
  if(adcInfo.adcErrorStatus== ADC_Init_Start_Error)
  {
 	 ioInfo.outputsInfo.ledRed.pinState = GPIO_PIN_SET;
+	 LCD_Initialization(&lcd);
+	 LCD_Clear(&lcd);
+	 LCD_Set_Cursor(&lcd, 0, 0);
+	 LCD_Send_String(&lcd, "ADC Init Ok!");
+	 HAL_Delay(100);
  }
  else
  {
 	 ioInfo.outputsInfo.ledGreen.pinState = GPIO_PIN_SET;
+	 LCD_Initialization(&lcd);
+	 LCD_Clear(&lcd);
+	 LCD_Set_Cursor(&lcd, 0, 0);
+	 LCD_Send_String(&lcd, "ADC Init Error!");
+	 HAL_Delay(100);
  }
+ if(HAL_DAC_Start(&hadc1, DAC_CHANNEL_1)==HAL_OK)
+ {
+	 UARTx_Printf(&uart3, "DAC Started/r/n");
+	 ioInfo.outputsInfo.ledGreen.pinState = GPIO_PIN_SET;
+	 LCD_Initialization(&lcd);
+	 LCD_Clear(&lcd);
+	 LCD_Set_Cursor(&lcd, 0, 0);
+	 LCD_Send_String(&lcd, "Dac Init OK!");
+	 HAL_Delay(100);
+ }
+ else
+ {
+	 UARTx_Printf(&uart3, "DAC Started/r/n");
+	 ioInfo.outputsInfo.ledGreen.pinState = GPIO_PIN_SET;
+	 LCD_Initialization(&lcd);
+	 LCD_Clear(&lcd);
+	 LCD_Set_Cursor(&lcd, 0, 0);
+	 LCD_Send_String(&lcd, "Dac Init Error!");
+	  HAL_Delay(100);
+ }
+
+ uint32_t currentTick = HAL_GetTick();
+
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -129,6 +187,16 @@ int main(void)
     /* USER CODE BEGIN 3 */
 	  IO_Status_Control(&ioInfo);
 	  ADC_DMA_Conversion(&adcInfo);
+	  if(HAL_GetTick() - currentTick > 10)
+	  {
+		  currentTick = HAL_GetTick();
+		  LCD_Initialization(&lcd);
+		  	  LCD_Clear(&lcd);
+		  	  LCD_Send_String(&lcd, "STM Project!");
+		  	  HAL_Delay(2000);
+		  	  LCD_Printf(&lcd, "PT1;%dP T:%.1fC",adcInfo.potPercentage,adcInfo.temprature);
+	  }
+
   }
   /* USER CODE END 3 */
 }
@@ -305,6 +373,40 @@ static void MX_DAC_Init(void)
   /* USER CODE BEGIN DAC_Init 2 */
 
   /* USER CODE END DAC_Init 2 */
+
+}
+
+/**
+  * @brief I2C1 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_I2C1_Init(void)
+{
+
+  /* USER CODE BEGIN I2C1_Init 0 */
+
+  /* USER CODE END I2C1_Init 0 */
+
+  /* USER CODE BEGIN I2C1_Init 1 */
+
+  /* USER CODE END I2C1_Init 1 */
+  hi2c1.Instance = I2C1;
+  hi2c1.Init.ClockSpeed = 100000;
+  hi2c1.Init.DutyCycle = I2C_DUTYCYCLE_2;
+  hi2c1.Init.OwnAddress1 = 0;
+  hi2c1.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
+  hi2c1.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
+  hi2c1.Init.OwnAddress2 = 0;
+  hi2c1.Init.GeneralCallMode = I2C_GENERALCALL_DISABLE;
+  hi2c1.Init.NoStretchMode = I2C_NOSTRETCH_DISABLE;
+  if (HAL_I2C_Init(&hi2c1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN I2C1_Init 2 */
+
+  /* USER CODE END I2C1_Init 2 */
 
 }
 
