@@ -11,6 +11,8 @@
 #include "main.h"
 #include "stdbool.h"
 #include "stdarg.h"
+#include "string.h"
+#include "stdio.h"
 
 #define  LCD_I2C_DEVICE_ADDRESS   0x4E
 

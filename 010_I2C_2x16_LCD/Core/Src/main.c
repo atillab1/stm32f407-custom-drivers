@@ -106,6 +106,10 @@ int main(void)
   LCD_Send_String(&lcd, "Merhaba!");
   HAL_Delay(100);
 
+  LCD_Clear(&lcd);
+  LCD_Set_Cursor(&lcd, 0,0);
+  LCD_Printf(&lcd, " Temp: %f C",24.54);
+  HAL_Delay(2000);
 
   /* USER CODE END 2 */
 

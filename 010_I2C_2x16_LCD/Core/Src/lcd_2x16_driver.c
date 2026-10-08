@@ -67,6 +67,29 @@ void LCD_Clear(LCD_t *lcd)
 
 }
 
+void LCD_Home (LCD_t *lcd)
+{
+	LCD_Send_Command(lcd, LCD_Cmd_ReturnHome);
+	HAL_Delay(2);
+}
+
+void LCD_Send_Char(LCD_t *lcd, char ch )
+{
+	LCD_Send_Data(lcd, (uint8_t)ch);
+	HAL_Delay(2);
+}
+
+void LCD_Cursor_Show(LCD_t *lcd)
+{
+	lcd->display_control |= LCD_Cursor_On;
+	LCD_Send_Command(lcd, LCD_Cmd_DisplayOnOff|lcd->display_control);
+}
+
+void LCD_Cursor_Hide(LCD_t *lcd)
+{
+	lcd->display_control &= LCD_Cursor_On;
+		LCD_Send_Command(lcd, LCD_Cmd_DisplayOnOff|lcd->display_control);
+}
 
 void LCD_Set_Cursor(LCD_t *lcd,uint8_t row, uint8_t column)
 {
@@ -120,6 +143,42 @@ void LCD_Backlight_Off(LCD_t *lcd){
 	LCD_Send_Command(lcd, 0x00);
 }
 
+void LCD_Printf(LCD_t *lcd, const char * format, ...)
+{
+
+	char buffer[64];
+
+	va_list args;
+	va_start(args,format);
+	vsniprintf(buffer,sizeof(buffer),format,args);
+	va_end(args);
+
+	LCD_Send_String(lcd, buffer);
+}
+
+void LCD_Scrool_Text(LCD_t *lcd, const char *text ,uint8_t row, uint16_t delayMs)
+{
+	char buffer [17];   		//ekranda tek seferde 16 karakter var +1 de null karakter
+	uint8_t len = strlen(text);
+
+	if(len <= lcd->columns)
+	{
+		LCD_Set_Cursor(lcd, row, 0);
+		LCD_Send_String(lcd, text);
+
+	return;
+	}
+
+	for(uint8_t i = 0; i< len-lcd->columns; i++)
+	{
+		strncpy(buffer,&text[i],lcd->columns);
+		buffer[lcd->columns] = '\0';
+
+		LCD_Set_Cursor(lcd, row, 0);
+		LCD_Send_String(lcd, buffer);
+		HAL_Delay(delayMs);
+	}
+}
 
 
 // LCD ekran baslarken kendini 8 bit modda zannediyor biz 4 bitlik modda kualllanacagiz
