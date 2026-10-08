@@ -27,7 +27,7 @@ jobs:
           --error-exitcode=1 --inline-suppr -q
           --suppress=missingIncludeSystem --suppress='*:STM_Project_001/Drivers/*'
           -DSTM32F407xx -DUSE_HAL_DRIVER
-          -Idrivers/io -Idrivers/adc -Idrivers/circular_buffer -Idrivers/uart
+          -Idrivers/io -Idrivers/adc -Idrivers/circular_buffer -Idrivers/uart -Idrivers/lcd_2x16
           -ISTM_Project_001/Core/Inc -ISTM_Project_001/Drivers/STM32F4xx_HAL_Driver/Inc
           -ISTM_Project_001/Drivers/CMSIS/Device/ST/STM32F4xx/Include -ISTM_Project_001/Drivers/CMSIS/Include
           drivers/
@@ -49,6 +49,7 @@ jobs:
           - 007_TIMER_Output_Compare
           - 008_PWM
           - 009_UART_printf
+          - 010_I2C_2x16_LCD
     steps:
       - uses: actions/checkout@v4
       - name: Install Arm GNU toolchain
