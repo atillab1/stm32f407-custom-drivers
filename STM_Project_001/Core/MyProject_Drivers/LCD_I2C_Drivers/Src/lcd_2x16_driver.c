@@ -150,7 +150,7 @@ void LCD_Printf(LCD_t *lcd, const char * format, ...)
 
 	va_list args;
 	va_start(args,format);
-	vsniprintf(buffer,sizeof(buffer),format,args);
+	vsnprintf(buffer,sizeof(buffer),format,args);
 	va_end(args);
 
 	LCD_Send_String(lcd, buffer);
@@ -169,9 +169,9 @@ void LCD_Scrool_Text(LCD_t *lcd, const char *text ,uint8_t row, uint16_t delayMs
 	return;
 	}
 
-	for(uint8_t i = 0; i< len-lcd->columns; i++)
+	for(uint8_t i = 0; i<= len-lcd->columns; i++)
 	{
-		strncopy(buffer,&text[i],lcd->columns);
+		strncpy(buffer,&text[i],lcd->columns);
 		buffer[lcd->columns] = '\0';
 
 		LCD_Set_Cursor(lcd, row, 0);
