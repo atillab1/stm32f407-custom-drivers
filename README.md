@@ -7,15 +7,15 @@ Hand-written peripheral drivers, a main application that uses them, and a series
 and UART experiments for the **STM32F4DISCOVERY** board (STM32F407VGT6), built with STM32CubeIDE
 and the STM32Cube HAL.
 
-- [`STM_Project_001/`](STM_Project_001/) — the main application, built from the GPIO and ADC
-  drivers.
-- `001_TIMER_External_Trigger_Mode/` … `009_UART_printf/` — one small CubeIDE project per peripheral feature, each with
-  its own README.
+- [`STM_Project_001/`](STM_Project_001/) — the main application, built from the GPIO, ADC, UART
+  and LCD drivers.
+- `001_TIMER_External_Trigger_Mode/` … `010_I2C_2x16_LCD/` — one small CubeIDE project per peripheral
+  feature, each with its own README.
 - [`drivers/`](drivers/) — our own driver library: GPIO with debounce, ADC with DMA, a circular
-  buffer and an interrupt-driven UART.
+  buffer, an interrupt-driven UART and a 2x16 I2C LCD.
 - [`tests/`](tests/) — host-side unit tests for the hardware-independent code.
 
-Every push is checked by CI: unit tests, static analysis and a firmware build of all ten projects.
+Every push is checked by CI: unit tests, static analysis and a firmware build of all eleven projects.
 
 ## Hardware
 
@@ -26,6 +26,7 @@ Every push is checked by CI: unit tests, static analysis and a firmware build of
 | System clock | `STM_Project_001`: HSI 16 MHz → PLL → **168 MHz**. Examples: HSI **16 MHz**, no PLL |
 | On-board I/O used | User button on **PA0**; LEDs on **PD12** (green), **PD13** (orange), **PD14** (red), **PD15** (blue) |
 | UART (`STM_Project_001`, `009_UART_printf`) | USART3: **PB10** TX, **PB11** RX, 115200 8N1 |
+| LCD (`STM_Project_001`, `010_I2C_2x16_LCD`) | 2x16 LCD with PCF8574 backpack on I2C1: **PB6** SCL, **PB7** SDA, address 0x27 |
 | Debug probe | On-board ST-LINK |
 
 ## Repository layout
@@ -33,13 +34,14 @@ Every push is checked by CI: unit tests, static analysis and a firmware build of
 ```
 .
 ├── STM_Project_001/          main application (STM32CubeIDE project)
-├── 001_TIMER_External_Trigger_Mode/ … 009_UART_printf/
+├── 001_TIMER_External_Trigger_Mode/ … 010_I2C_2x16_LCD/
 │                             example projects, one CubeIDE project each
 ├── drivers/                  our own driver library (see drivers/README.md)
 │   ├── io/                   GPIO inputs/outputs with software debounce
 │   ├── adc/                  ADC1 + DMA, averaging, VDDA and temperature
 │   ├── circular_buffer/      ISR-safe single-producer/single-consumer byte queue
-│   └── uart/                 interrupt-driven UART on two circular buffers, printf
+│   ├── uart/                 interrupt-driven UART on two circular buffers, printf
+│   └── lcd_2x16/             2x16 character LCD over an I2C (PCF8574) backpack
 ├── tests/                    host-side unit tests (make -C tests)
 ├── tools/                    command-line build of the CubeIDE projects
 └── .github/workflows/        CI
@@ -47,32 +49,31 @@ Every push is checked by CI: unit tests, static analysis and a firmware build of
 
 The repository root is not a CubeIDE project. Every project sits in its own folder and keeps its
 own copy of the drivers it uses, so each one builds on its own: `STM_Project_001` under
-`Core/MyProject_Drivers`, `009_UART_printf` in `Core/Inc` and `Core/Src`. `drivers/` holds the
+`Core/MyProject_Drivers`, `009_UART_printf` and `010_I2C_2x16_LCD` in `Core/Inc` and `Core/Src`. `drivers/` holds the
 library version of every driver.
 
 ## Main application
 
-`STM_Project_001` combines the GPIO and ADC drivers. Each driver keeps its state in one struct,
-and the main loop calls a single update function per driver:
+`STM_Project_001` combines the GPIO, ADC, UART and LCD drivers. Each driver keeps its state in one
+struct, and the main loop calls a single update function per driver:
 
 ```c
-IO_Info_t  ioInfo;
-ADC_Info_t adcInfo;
-
 IO_Initialization(&ioInfo);
+UARTx_Initilalization(&uart3, &huart3, &uartCbIn, &uartCbOut);
+LCD_Initialization(&lcd);
 ADC_Initialization(&adcInfo, &hadc1);
 
 while (1)
 {
   IO_Status_Control(&ioInfo);     /* drive LEDs, debounce the button */
   ADC_DMA_Conversion(&adcInfo);   /* average samples, update voltages */
+  /* DAC output, LED commands from USART3, LCD refresh every 500 ms */
 }
 ```
 
-At start-up the green LED lights when ADC + DMA started correctly, the red LED when they failed.
-The ADC samples PA2 and PA3, the internal temperature sensor, VREFINT and VBAT. USART3 (115200 baud,
-PB10/PB11) is set up with the UART driver and its two circular buffers; the main loop does not use
-it yet.
+At start-up the board reports the ADC and DAC status on USART3 and on the LCD. The green LED lights
+when the ADC started, the red LED when the ADC or the DAC failed. The ADC samples PA2 and PA3, the internal temperature
+sensor, VREFINT and VBAT; the LCD then shows the potentiometer position and the die temperature.
 
 ## Drivers
 
@@ -82,6 +83,7 @@ it yet.
 | [`adc`](drivers/adc/) | HAL ADC + DMA | Five-channel scan, 64-sample average, real VDDA from VREFINT, temperature, VBAT |
 | [`circular_buffer`](drivers/circular_buffer/) | none | Fixed-size byte FIFO for one ISR and one main-loop user, unit tested on the host |
 | [`uart`](drivers/uart/) | HAL UART, `circular_buffer` | RX and TX through interrupts and two circular buffers; `printf`-style output |
+| [`lcd_2x16`](drivers/lcd_2x16/) | HAL I2C | HD44780 2x16 LCD through a PCF8574 backpack in 4-bit mode; strings, `printf`, scrolling |
 
 The API of each driver is described in [`drivers/README.md`](drivers/README.md).
 
@@ -98,6 +100,7 @@ The API of each driver is described in [`drivers/README.md`](drivers/README.md).
 | 007 | [`007_TIMER_Output_Compare`](007_TIMER_Output_Compare/) | TIM4, output compare toggle (PD12–PD15) | Four LEDs blinking 250 ms apart, no CPU involved |
 | 008 | [`008_PWM`](008_PWM/) | TIM3, PWM (PA6, PA7, PB0) | RGB LED fading through a colour table |
 | 009 | [`009_UART_printf`](009_UART_printf/) | USART3, interrupts (PB10, PB11) | UART driver with circular buffers and `printf` |
+| 010 | [`010_I2C_2x16_LCD`](010_I2C_2x16_LCD/) | I2C1 (PB6, PB7) | 2x16 character LCD driver over a PCF8574 backpack |
 
 ## Getting started
 
@@ -143,7 +146,7 @@ request:
 |---|---|
 | Host unit tests | `make -C tests` |
 | Static analysis | cppcheck (warning, performance, portability) on `drivers/` |
-| Firmware | Debug and Release builds of `STM_Project_001` and all nine examples |
+| Firmware | Debug and Release builds of `STM_Project_001` and all ten examples |
 
 ## Roadmap
 
@@ -152,6 +155,7 @@ request:
 - [x] Host-side unit tests for hardware-independent modules
 - [x] CI with static analysis and firmware builds
 - [x] UART driver in the main application
+- [x] I2C character LCD driver, also used in the main application
 - [ ] MISRA C checks in CI
 - [ ] I2C and SPI sensor drivers
 - [ ] FreeRTOS version of the main application

@@ -14,6 +14,7 @@ improved inside a project, copy the change here too, so this folder always has t
 | [`adc`](adc/) | `STM_Project_001/Core/MyProject_Drivers/ADC_Drivers` | HAL ADC + DMA, LL ADC helper macros |
 | [`circular_buffer`](circular_buffer/) | `009_UART_printf/Core`, `STM_Project_001/Core/MyProject_Drivers/Circular_Buffer_Drivers` | standard C only |
 | [`uart`](uart/) | `009_UART_printf/Core`, `STM_Project_001/Core/MyProject_Drivers/UART_Drivers` | HAL UART, `circular_buffer` |
+| [`lcd_2x16`](lcd_2x16/) | `010_I2C_2x16_LCD/Core`, `STM_Project_001/Core/MyProject_Drivers/LCD_I2C_Drivers` | HAL I2C |
 
 ## io
 
@@ -100,6 +101,30 @@ switches it back on in `HAL_UART_ErrorCallback()` (`Core/Src/main.c`).
 
 Limitations: characters are dropped when `cbOut` is full, and received bytes stay in `cbIn` until
 the application reads them with `Circular_Buffer_Dequeue()`.
+
+## lcd_2x16
+
+Drives an HD44780 2x16 character LCD through a PCF8574 I2C backpack. The LCD runs in 4-bit mode:
+every byte goes out as two nibbles, and each nibble is written twice, once with EN = 1 and once
+with EN = 0, so the LCD latches it on the falling edge. The other bits of the PCF8574 byte are
+RS (`0x01`, data instead of command), EN (`0x04`) and the backlight (`0x08`).
+
+The state lives in `LCD_t`: the I2C handle, the address (`LCD_I2C_DEVICE_ADDRESS` = `0x4E`, the
+8-bit form of 0x27 that HAL expects), the size and the backlight flag.
+
+| Function | Purpose |
+|---|---|
+| `LCD_Initialization(lcd)` | Reset sequence (`0x30` three times, `0x20`), then 4-bit 2-line mode, display on, clear, entry mode |
+| `LCD_Clear(lcd)` / `LCD_Home(lcd)` | Clear the screen / move the cursor to the top left |
+| `LCD_Set_Cursor(lcd, row, column)` | Move the cursor; row 0 starts at DDRAM `0x00`, row 1 at `0x40` |
+| `LCD_Send_Char` / `LCD_Send_String` | Write text at the cursor |
+| `LCD_Printf(lcd, fmt, ...)` | Format up to 63 characters and write them |
+| `LCD_Scrool_Text(lcd, text, row, delayMs)` | Scroll a text longer than the row across it; blocks while scrolling |
+| `LCD_Cursor_Show` / `LCD_Cursor_Hide` | Show or hide the cursor |
+| `LCD_Backlight_On` / `LCD_Backlight_Off` | Switch the backlight |
+
+`%f` in `LCD_Printf()` needs float support in newlib-nano: **Project → Properties → C/C++ Build →
+Settings → MCU Settings → Use float with printf from newlib-nano**.
 
 ## Adding a driver to a CubeIDE project
 
