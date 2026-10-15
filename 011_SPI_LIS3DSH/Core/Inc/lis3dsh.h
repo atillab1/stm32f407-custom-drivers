@@ -52,7 +52,11 @@ typedef struct {
 	int16_t		       y_raw;
 	int16_t 		   z_raw;
 
+	float 			   roll;
+	float 			   pitch;
+
 	bool         	   found;
+
 
 }LIS3DSH_t;
 

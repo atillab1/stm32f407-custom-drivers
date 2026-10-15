@@ -60,7 +60,23 @@ uint8_t LIS3DSH_Who_I_Am(LIS3DSH_t *lis3dsh)
 
 bool LIS3DSH_Read_XYZ(LIS3DSH_t *lis3dsh)
 {
-	return false;
+	uint8_t xl,xh,yl,yh,zl,zh;
+
+	// 8 bit low 8 bit highdan gelen veriyi 8 bit sola kaydirdik ve x hami elde ettik
+	xl = LIS3DSH_Read_Register(lis3dsh, LIS3DSH_OUT_X_L);
+	xh = LIS3DSH_Read_Register(lis3dsh, LIS3DSH_OUT_X_H);
+	lis3dsh->x_raw = (int16_t)((xh<<8)| (xl) );
+
+	yl = LIS3DSH_Read_Register(lis3dsh, LIS3DSH_OUT_Y_L);
+	yh = LIS3DSH_Read_Register(lis3dsh, LIS3DSH_OUT_Y_H);
+	lis3dsh->y_raw = (int16_t)((yh<<8)| (yl) );
+
+	zl = LIS3DSH_Read_Register(lis3dsh, LIS3DSH_OUT_Z_L);
+	zh = LIS3DSH_Read_Register(lis3dsh, LIS3DSH_OUT_Z_H);
+	lis3dsh->z_raw = (int16_t)((zh<<8)| (zl) );
+
+	return true;
+
 }
 
 uint8_t LIS3DSH_Read_Register(LIS3DSH_t *lis3dsh,uint8_t regAddr){

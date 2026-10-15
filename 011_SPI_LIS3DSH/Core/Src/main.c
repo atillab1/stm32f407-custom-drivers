@@ -22,6 +22,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "lis3dsh.h"
+#include"math.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -31,7 +32,8 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-
+#define RAD_TO_DEG     (180/M_PI)     // 180/ PI
+#define DEG_THRES 		15.0
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -90,7 +92,7 @@ int main(void)
   MX_GPIO_Init();
   MX_SPI1_Init();
   /* USER CODE BEGIN 2 */
-
+LIS3DSH_Initialization(&mems, &hspi1, MEMS_CS_GPIO_Port, MEMS_CS_Pin);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -100,6 +102,18 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+	  LIS3DSH_Read_XYZ(&mems);
+
+	  mems.roll		 = 	atan2f(mems.y_raw,sqrtf(mems.x_raw*mems.x_raw + mems.z_raw*mems.z_raw))*RAD_TO_DEG;
+	  mems.pitch 	 = 	atan2f(-mems.x_raw,sqrtf(mems.y_raw*mems.y_raw + mems.z_raw*mems.z_raw))*RAD_TO_DEG;;
+
+	  HAL_GPIO_WritePin(GPIOD, GPIO_PIN_12,(mems.pitch < -DEG_THRES)? GPIO_PIN_SET: GPIO_PIN_RESET );
+	  HAL_GPIO_WritePin(GPIOD, GPIO_PIN_14,(mems.pitch >  DEG_THRES)? GPIO_PIN_SET: GPIO_PIN_RESET );
+	  HAL_GPIO_WritePin(GPIOD, GPIO_PIN_13,(mems.roll  < -DEG_THRES)? GPIO_PIN_SET: GPIO_PIN_RESET );
+	  HAL_GPIO_WritePin(GPIOD, GPIO_PIN_15,(mems.roll  >  DEG_THRES)? GPIO_PIN_SET: GPIO_PIN_RESET );
+
+	  HAL_Delay(1000);
+
   }
   /* USER CODE END 3 */
 }
@@ -197,9 +211,13 @@ static void MX_GPIO_Init(void)
   /* GPIO Ports Clock Enable */
   __HAL_RCC_GPIOE_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
+  __HAL_RCC_GPIOD_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(MEMS_CS_GPIO_Port, MEMS_CS_Pin, GPIO_PIN_SET);
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOD, GPIO_PIN_12|GPIO_PIN_13|GPIO_PIN_14|GPIO_PIN_15, GPIO_PIN_RESET);
 
   /*Configure GPIO pin : MEMS_CS_Pin */
   GPIO_InitStruct.Pin = MEMS_CS_Pin;
@@ -207,6 +225,13 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(MEMS_CS_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : PD12 PD13 PD14 PD15 */
+  GPIO_InitStruct.Pin = GPIO_PIN_12|GPIO_PIN_13|GPIO_PIN_14|GPIO_PIN_15;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
 
   /*Configure GPIO pins : MEMS_INT1_Pin MEMS_INT2_Pin */
   GPIO_InitStruct.Pin = MEMS_INT1_Pin|MEMS_INT2_Pin;
