@@ -50,6 +50,7 @@ jobs:
           - 008_PWM
           - 009_UART_printf
           - 010_I2C_2x16_LCD
+          - 011_SPI_LIS3DSH
     steps:
       - uses: actions/checkout@v4
       - name: Install Arm GNU toolchain

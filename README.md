@@ -9,13 +9,13 @@ and the STM32Cube HAL.
 
 - [`STM_Project_001/`](STM_Project_001/) — the main application, built from the GPIO, ADC, UART
   and LCD drivers.
-- `001_TIMER_External_Trigger_Mode/` … `010_I2C_2x16_LCD/` — one small CubeIDE project per peripheral
+- `001_TIMER_External_Trigger_Mode/` … `011_SPI_LIS3DSH/` — one small CubeIDE project per peripheral
   feature, each with its own README.
 - [`drivers/`](drivers/) — our own driver library: GPIO with debounce, ADC with DMA, a circular
   buffer, an interrupt-driven UART and a 2x16 I2C LCD.
 - [`tests/`](tests/) — host-side unit tests for the hardware-independent code.
 
-Every push is checked by CI: unit tests, static analysis and a firmware build of all eleven projects.
+Every push is checked by CI: unit tests, static analysis and a firmware build of all twelve projects.
 
 ## Hardware
 
@@ -27,6 +27,7 @@ Every push is checked by CI: unit tests, static analysis and a firmware build of
 | On-board I/O used | User button on **PA0**; LEDs on **PD12** (green), **PD13** (orange), **PD14** (red), **PD15** (blue) |
 | UART (`STM_Project_001`, `009_UART_printf`) | USART3: **PB10** TX, **PB11** RX, 115200 8N1 |
 | LCD (`STM_Project_001`, `010_I2C_2x16_LCD`) | 2x16 LCD with PCF8574 backpack on I2C1: **PB6** SCL, **PB7** SDA, address 0x27 |
+| Accelerometer (`011_SPI_LIS3DSH`) | On-board LIS3DSH on SPI1: **PA5** SCK, **PA6** MISO, **PA7** MOSI, **PE3** CS |
 | Debug probe | On-board ST-LINK |
 
 ## Repository layout
@@ -34,7 +35,7 @@ Every push is checked by CI: unit tests, static analysis and a firmware build of
 ```
 .
 ├── STM_Project_001/          main application (STM32CubeIDE project)
-├── 001_TIMER_External_Trigger_Mode/ … 010_I2C_2x16_LCD/
+├── 001_TIMER_External_Trigger_Mode/ … 011_SPI_LIS3DSH/
 │                             example projects, one CubeIDE project each
 ├── drivers/                  our own driver library (see drivers/README.md)
 │   ├── io/                   GPIO inputs/outputs with software debounce
@@ -49,7 +50,7 @@ Every push is checked by CI: unit tests, static analysis and a firmware build of
 
 The repository root is not a CubeIDE project. Every project sits in its own folder and keeps its
 own copy of the drivers it uses, so each one builds on its own: `STM_Project_001` under
-`Core/MyProject_Drivers`, `009_UART_printf` and `010_I2C_2x16_LCD` in `Core/Inc` and `Core/Src`. `drivers/` holds the
+`Core/MyProject_Drivers`, `009_UART_printf`, `010_I2C_2x16_LCD` and `011_SPI_LIS3DSH` in `Core/Inc` and `Core/Src`. `drivers/` holds the
 library version of every driver.
 
 ## Main application
@@ -101,6 +102,7 @@ The API of each driver is described in [`drivers/README.md`](drivers/README.md).
 | 008 | [`008_PWM`](008_PWM/) | TIM3, PWM (PA6, PA7, PB0) | RGB LED fading through a colour table |
 | 009 | [`009_UART_printf`](009_UART_printf/) | USART3, interrupts (PB10, PB11) | UART driver with circular buffers and `printf` |
 | 010 | [`010_I2C_2x16_LCD`](010_I2C_2x16_LCD/) | I2C1 (PB6, PB7) | 2x16 character LCD driver over a PCF8574 backpack |
+| 011 | [`011_SPI_LIS3DSH`](011_SPI_LIS3DSH/) | SPI1 (PA5–PA7, CS PE3) | LIS3DSH accelerometer driver; LEDs show roll and pitch |
 
 ## Getting started
 
