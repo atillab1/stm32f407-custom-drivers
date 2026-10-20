@@ -25,6 +25,7 @@
 #include "adc_driver.h"
 #include "uart_ex.h"
 #include "lcd_2x16_driver.h"
+#include "software_timer.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -50,6 +51,8 @@ DAC_HandleTypeDef hdac;
 
 I2C_HandleTypeDef hi2c1;
 
+TIM_HandleTypeDef htim14;
+
 UART_HandleTypeDef huart3;
 
 /* USER CODE BEGIN PV */
@@ -69,6 +72,7 @@ LCD_t lcd =
 		.columns = 16,
 		.backlight = true,
 };
+STimer_t sTimer_200ms;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -79,6 +83,7 @@ static void MX_ADC1_Init(void);
 static void MX_DAC_Init(void);
 static void MX_USART3_UART_Init(void);
 static void MX_I2C1_Init(void);
+static void MX_TIM14_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -122,7 +127,9 @@ int main(void)
   MX_DAC_Init();
   MX_USART3_UART_Init();
   MX_I2C1_Init();
+  MX_TIM14_Init();
   /* USER CODE BEGIN 2 */
+  Software_Timer_Init(&htim14);
  IO_Initialization(&ioInfo);
  UARTx_Initilalization(&uart3, &huart3, &uartCbIn, &uartCbOut);
 
@@ -161,8 +168,7 @@ int main(void)
  }
  HAL_Delay(1000);
 
- uint32_t currentTick = HAL_GetTick();
-
+Software_Timer_Set_Time(&sTimer_200ms, 200);
 
   /* USER CODE END 2 */
 
@@ -215,13 +221,15 @@ int main(void)
 	  }
 
 	  // LCD 500 ms'de bir guncellenir; HAL_Delay olmadigi icin UART ve butonlar beklemez
-	  if(HAL_GetTick() - currentTick >= 500)
+	  if(Software_Timer_Check_Elapsed_Time(&sTimer_200ms))
 	  {
-		  currentTick = HAL_GetTick();
+
 		  LCD_Set_Cursor(&lcd, 0, 0);
 		  LCD_Printf(&lcd, "%-16s", "STM Project!");
 		  LCD_Set_Cursor(&lcd, 1, 0);
 		  LCD_Printf(&lcd, "P:%3d%% T:%.1fC  ", adcInfo.potPercentage, adcInfo.temprature);
+
+		  Software_Timer_Set_Time(&sTimer_200ms, 200);
 	  }
 
   }
@@ -434,6 +442,37 @@ static void MX_I2C1_Init(void)
   /* USER CODE BEGIN I2C1_Init 2 */
 
   /* USER CODE END I2C1_Init 2 */
+
+}
+
+/**
+  * @brief TIM14 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM14_Init(void)
+{
+
+  /* USER CODE BEGIN TIM14_Init 0 */
+
+  /* USER CODE END TIM14_Init 0 */
+
+  /* USER CODE BEGIN TIM14_Init 1 */
+
+  /* USER CODE END TIM14_Init 1 */
+  htim14.Instance = TIM14;
+  htim14.Init.Prescaler = 83;
+  htim14.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim14.Init.Period = 999;
+  htim14.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim14.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim14) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM14_Init 2 */
+
+  /* USER CODE END TIM14_Init 2 */
 
 }
 
