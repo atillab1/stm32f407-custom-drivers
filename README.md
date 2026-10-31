@@ -7,15 +7,15 @@ Hand-written peripheral drivers, a main application that uses them, and a series
 and UART experiments for the **STM32F4DISCOVERY** board (STM32F407VGT6), built with STM32CubeIDE
 and the STM32Cube HAL.
 
-- [`STM_Project_001/`](STM_Project_001/) — the main application, built from the GPIO, ADC, UART
-  and LCD drivers.
-- `001_TIMER_External_Trigger_Mode/` … `012_USB_OTG_CDC/` — one small CubeIDE project per peripheral
+- [`STM_Project_001/`](STM_Project_001/) — the main application, built from the GPIO, ADC, UART,
+  LCD and software timer drivers.
+- `001_TIMER_External_Trigger_Mode/` … `022_Software_Timer/` — one small CubeIDE project per peripheral
   feature, each with its own README.
 - [`drivers/`](drivers/) — our own driver library: GPIO with debounce, ADC with DMA, a circular
   buffer, an interrupt-driven UART and a 2x16 I2C LCD.
 - [`tests/`](tests/) — host-side unit tests for the hardware-independent code.
 
-Every push is checked by CI: unit tests, static analysis and a firmware build of all thirteen projects.
+Every push is checked by CI: unit tests, static analysis and a firmware build of all seventeen projects.
 
 ## Hardware
 
@@ -23,7 +23,7 @@ Every push is checked by CI: unit tests, static analysis and a firmware build of
 |---|---|
 | Board | STM32F4DISCOVERY |
 | MCU | STM32F407VGT6 (Arm Cortex-M4F) |
-| System clock | `STM_Project_001`: HSI 16 MHz → PLL → **168 MHz**. Examples: HSI **16 MHz**, no PLL |
+| System clock | `STM_Project_001`: HSI 16 MHz → PLL → **168 MHz**. Examples 001–012: HSI **16 MHz**, no PLL. 013–015: HSE 8 MHz → PLL → **168 MHz**. 022: HSE → PLL → **150 MHz** |
 | On-board I/O used | User button on **PA0**; LEDs on **PD12** (green), **PD13** (orange), **PD14** (red), **PD15** (blue) |
 | UART (`STM_Project_001`, `009_UART_printf`) | USART3: **PB10** TX, **PB11** RX, 115200 8N1 |
 | LCD (`STM_Project_001`, `010_I2C_2x16_LCD`) | 2x16 LCD with PCF8574 backpack on I2C1: **PB6** SCL, **PB7** SDA, address 0x27 |
@@ -36,7 +36,7 @@ Every push is checked by CI: unit tests, static analysis and a firmware build of
 ```
 .
 ├── STM_Project_001/          main application (STM32CubeIDE project)
-├── 001_TIMER_External_Trigger_Mode/ … 012_USB_OTG_CDC/
+├── 001_TIMER_External_Trigger_Mode/ … 022_Software_Timer/
 │                             example projects, one CubeIDE project each
 ├── drivers/                  our own driver library (see drivers/README.md)
 │   ├── io/                   GPIO inputs/outputs with software debounce
@@ -51,12 +51,12 @@ Every push is checked by CI: unit tests, static analysis and a firmware build of
 
 The repository root is not a CubeIDE project. Every project sits in its own folder and keeps its
 own copy of the drivers it uses, so each one builds on its own: `STM_Project_001` under
-`Core/MyProject_Drivers`, `009_UART_printf`, `010_I2C_2x16_LCD` and `011_SPI_LIS3DSH` in `Core/Inc` and `Core/Src`. `drivers/` holds the
-library version of every driver.
+`Core/MyProject_Drivers`, `009_UART_printf`, `010_I2C_2x16_LCD`, `011_SPI_LIS3DSH` and `022_Software_Timer` in `Core/Inc` and `Core/Src`.
+`drivers/` holds the library version of the GPIO, ADC, circular buffer, UART and LCD drivers.
 
 ## Main application
 
-`STM_Project_001` combines the GPIO, ADC, UART and LCD drivers. Each driver keeps its state in one
+`STM_Project_001` combines the GPIO, ADC, UART, LCD and software timer drivers. Each driver keeps its state in one
 struct, and the main loop calls a single update function per driver:
 
 ```c
@@ -105,6 +105,10 @@ The API of each driver is described in [`drivers/README.md`](drivers/README.md).
 | 010 | [`010_I2C_2x16_LCD`](010_I2C_2x16_LCD/) | I2C1 (PB6, PB7) | 2x16 character LCD driver over a PCF8574 backpack |
 | 011 | [`011_SPI_LIS3DSH`](011_SPI_LIS3DSH/) | SPI1 (PA5–PA7, CS PE3) | LIS3DSH accelerometer driver; LEDs show roll and pitch |
 | 012 | [`012_USB_OTG_CDC`](012_USB_OTG_CDC/) | USB OTG FS, CDC class (PA11, PA12) | Virtual COM port that answers every message it receives |
+| 013 | [`013_LP_Sleep_Mode`](013_LP_Sleep_Mode/) | PWR, Sleep mode (WFE), EXTI0 (PA0) | Blinks for 10 s, sleeps, wakes on the user button |
+| 014 | [`014_LP_Stop_Mode`](014_LP_Stop_Mode/) | PWR, Stop mode (WFI), EXTI0 (PA0) | Same as 013 in Stop mode; restores the system clock after wake-up |
+| 015 | [`015_LP_Standby_Mode`](015_LP_Standby_Mode/) | PWR, Standby mode | Blinks for 10 s, then enters Standby (RAM is lost, wake-up restarts the program) |
+| 022 | [`022_Software_Timer`](022_Software_Timer/) | TIM14 update interrupt, 1 ms tick | Software timer library; four LEDs on 1, 2, 4 and 8 s timers and a seconds/minutes/hours clock |
 
 ## Getting started
 
@@ -150,7 +154,7 @@ request:
 |---|---|
 | Host unit tests | `make -C tests` |
 | Static analysis | cppcheck (warning, performance, portability) on `drivers/` |
-| Firmware | Debug and Release builds of `STM_Project_001` and all ten examples |
+| Firmware | Debug and Release builds of `STM_Project_001` and all sixteen examples |
 
 ## Roadmap
 
@@ -161,7 +165,10 @@ request:
 - [x] UART driver in the main application
 - [x] I2C character LCD driver, also used in the main application
 - [ ] MISRA C checks in CI
-- [ ] I2C and SPI sensor drivers
+- [x] SPI sensor driver (LIS3DSH)
+- [x] Software timer library
+- [x] Low-power mode examples (Sleep, Stop, Standby)
+- [ ] I2C sensor driver
 - [ ] FreeRTOS version of the main application
 
 ## License

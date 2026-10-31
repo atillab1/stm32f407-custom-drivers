@@ -10,6 +10,7 @@ The main application of the repository. Its hand-written drivers live inside the
 | `Core/MyProject_Drivers/UART_Drivers` | [`uart`](../drivers/uart/): interrupt-driven USART3 |
 | `Core/MyProject_Drivers/Circular_Buffer_Drivers` | [`circular_buffer`](../drivers/circular_buffer/): RX and TX queues of the UART driver |
 | `Core/MyProject_Drivers/LCD_I2C_Drivers` | [`lcd_2x16`](../drivers/lcd_2x16/): 2x16 character LCD over I2C1 |
+| `Core/MyProject_Drivers/Software_Timer_Drivers` | `software_timer`: millisecond software timers on the TIM14 interrupt (same code as [`022_Software_Timer`](../022_Software_Timer/)) |
 
 ## What it does
 
